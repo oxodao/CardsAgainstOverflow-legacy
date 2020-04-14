@@ -1,0 +1,44 @@
+.homepage {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.homepage img {
+    height: 5em;
+}
+
+.homepage form {
+    border: 1px solid #045757;
+    border-radius: .5em;
+    padding: 1em;
+    background: #111111;
+}
+
+.homepage form input[type="text"] {
+    display: block;
+    margin: 20px;
+    font-weight: bold;
+}
+
+.homepage form #room {
+    text-transform: uppercase;
+}
+
+.homepage form #room::placeholder{
+    text-transform: none;
+}
+
+.homepage form .buttons {
+    margin-top: .5em;
+}
+
+.homepage form .buttons input[type="submit"] {
+    border: none;
+    background: #045757;
+    color: #111111;
+    padding: 1em;
+    margin: .25em;
+    font-weight: bold;
+}

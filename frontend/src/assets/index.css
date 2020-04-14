@@ -1,0 +1,29 @@
+@font-face {
+ font-family: "Helvetica";
+ src: url("/assets/helvetica.woff2") format("woff2"),
+      url("/assets/helvetica.ttf") format("ttf"),
+      url("/assets/helvetica.eot") format("eot"),
+      url("/assets/helvetica.otf") format("otf"),
+      url("/assets/helvetica.svg") format("svg"),
+      url("/assets/helvetica.woff") format("woff");
+}
+
+body {
+  margin: 0;
+  font-family: 'Helvetica Neue', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  height: 100vh;
+  background: #222222;
+  color: #E4E4E4;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+#root, #root .App, #root .App .homepage {
+  height: 100%;
+}
