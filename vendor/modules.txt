@@ -1,0 +1,13 @@
+# github.com/gorilla/websocket v1.4.2
+## explicit
+github.com/gorilla/websocket
+# github.com/jmoiron/sqlx v1.2.0
+## explicit
+github.com/jmoiron/sqlx
+github.com/jmoiron/sqlx/reflectx
+# github.com/matoous/go-nanoid v1.3.0
+## explicit
+github.com/matoous/go-nanoid
+# github.com/mattn/go-sqlite3 v1.9.0
+## explicit
+github.com/mattn/go-sqlite3

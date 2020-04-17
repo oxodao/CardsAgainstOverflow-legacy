@@ -1,27 +1,37 @@
 package main
 
 import (
+	"flag"
 	"fmt"
+	"math/rand"
 	"net/http"
 	"net/url"
-	"strings"
+	"time"
 
 	"github.com/gorilla/websocket"
-	gonanoid "github.com/matoous/go-nanoid"
-	"github.com/oxodao/cardsagainstoverflow/model"
+	"github.com/oxodao/cardsagainstoverflow/dal"
+	"github.com/oxodao/cardsagainstoverflow/game"
 )
 
-var users []model.User = make([]model.User, 0)
-var rooms []*model.Room = make([]*model.Room, 0)
-
 func main() {
+	rand.Seed(time.Now().Unix())
+	dbCreationFile := flag.String("create_db", "", "File that contains initial decks to create the database")
+
+	flag.Parse()
+
+	if len(*dbCreationFile) > 0 {
+		err := dal.InitializeDB(*dbCreationFile)
+		if err != nil {
+			fmt.Println(err)
+		}
+		return
+	}
+
 	fmt.Println("CardsAgainstOverflow")
 
-	deck := GetAllBoosters()
+	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*") // @TODO: Disable before building
 
-	fmt.Println(deck)
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 		if err != nil {
 			fmt.Println("Can't upgrade connection for this client")
@@ -32,53 +42,28 @@ func main() {
 
 		params, _ := url.ParseQuery(r.URL.RawQuery)
 
-		client := &model.User{
-			Connection: conn,
-			Username:   params["username"][0],
-			Room:       nil,
-		}
-
-		for i := range users {
-			if users[i].Username == client.Username {
-				client.SendCommand(model.CommandError, "Un utilisateur est déjà connecté avec ce pseudo")
-				client.Connection.Close()
-				return
-			}
-		}
-
-		for i := range rooms {
-			if rooms[i].RoomID == params["room"][0] {
-				client.Room = rooms[i]
-				rooms[i].Participants = append(rooms[i].Participants, client)
-				break
-			}
-		}
-
-		if client.Room == nil {
-			newID, _ := gonanoid.Generate("abcdefghijklmnopqrstuvwxyz0123456789", 6)
-			client.Room = &model.Room{
-				RoomID:       strings.ToUpper(newID),
-				Participants: []*model.User{client},
-			}
-			rooms = append(rooms, client.Room)
-			fmt.Printf("Creating a new room named %v\n", client.Room.RoomID)
-		}
-
-		users = append(users, *client)
-
-		fmt.Printf("User connected! [Name: %v; Room: %v]\n", client.Username, client.Room.RoomID)
-		client.SendCommand(model.CommandConnected, struct {
-			Username string
-			Color    string
-			Room     string
-		}{
-			client.Username,
-			client.Color,
-			client.Room.RoomID,
-		})
+		ConnectUser(conn, params)
 	})
 
-	err := http.ListenAndServe("0.0.0.0:8080", nil)
+	// Disconnecting old players
+	go func() {
+		maxDelay, _ := time.ParseDuration("-30s")
+
+		for {
+			for i := range game.Rooms {
+				for p := range game.Rooms[i].Participants {
+					client := game.Rooms[i].Participants[p]
+					if client.LastPing.Before(time.Now().Add(maxDelay)) {
+						game.Kick(client, "Timed out.")
+					}
+				}
+			}
+
+			time.Sleep(30 * time.Second)
+		}
+	}()
+
+	err := http.ListenAndServe("0.0.0.0:8000", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
