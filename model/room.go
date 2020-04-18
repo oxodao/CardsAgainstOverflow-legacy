@@ -18,6 +18,8 @@ type Room struct {
 
 	RemainingCards      []*Card
 	RemainingBlackCards []*Card
+
+	Answers map[*User][]*Card
 }
 
 func (r *Room) IsReady() bool {
@@ -38,7 +40,6 @@ func (r *Room) PickCard() *Card {
 	r.RemainingCards[cardPicked] = r.RemainingCards[len(r.RemainingCards)-1]
 	r.RemainingCards = r.RemainingCards[:len(r.RemainingCards)-1]
 	return card
-
 }
 
 func (r *Room) PickBlackCard() *Card {
@@ -51,10 +52,11 @@ func (r *Room) PickBlackCard() *Card {
 	}
 
 	cardPicked := rand.Intn(i)
-	card := r.RemainingBlackCards[cardPicked]
+	//card := r.RemainingBlackCards[cardPicked]
 
 	r.RemainingBlackCards[cardPicked] = r.RemainingBlackCards[len(r.RemainingBlackCards)-1]
 	r.RemainingBlackCards = r.RemainingBlackCards[:len(r.RemainingBlackCards)-1]
 
-	return card
+	//return card
+	return r.RemainingBlackCards[len(r.RemainingBlackCards)-1]
 }

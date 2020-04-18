@@ -13,8 +13,7 @@ type User struct {
 	Score    int
 	Hand     [7]*Card
 
-	IsJudge      bool
-	SelectedCard *Card `json:"-"` // We don't want to send what other answers
+	IsJudge bool
 
 	Connection *websocket.Conn
 	LastPing   time.Time

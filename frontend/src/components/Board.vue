@@ -5,13 +5,14 @@
             <div class="gameinfo">
                 <span>Code salle: {{room}}</span>
                 <div class="buttons">
-                    <template v-if="isStarted">
+                    <template v-if="isAdmin && isStarted">
                         <button>Changer la partie</button>
                     </template>
-                    <template v-else>
-                        <button @click="startGame">Démarrer</button>
+                    <template v-else-if="isAdmin">
+                        <button v-if="isReady" @click="startGame">Démarrer</button>
                         <button>Paramètres</button>
                     </template>
+                    <button @click="exit">Quitter</button>
                 </div>
             </div>
         </header>
@@ -26,15 +27,28 @@
             </nav>
             <div class="game">
                 <div id="question">
-                    <h1 v-if="currBlackCard != null" id="question">{{currBlackCard.Text}}</h1>
+                    <h1 v-if="currBlackCard !== undefined && currBlackCard !== null" id="question">
+                        <span v-for="txt in getCardText" v-bind:key="txt.Question" v-bind:class="txt.Class">{{txt.Question}}</span>
+                    </h1>
                     <h1 v-else-if="isStarted" id="question">Attente de nouveaux joueurs</h1>
-                    <h1 v-else id="question">
+                    {{/* For some reasons the v-else doesn't work here... */ }}
+                    <h1 v-if="!currBlackCard && !isStarted " id="question">
                         En attente de joueurs...
                         <template v-if="isReady"> <br /> La partie est prête </template>
                     </h1>
                 </div>
-                <div id="cards">
-                    <Card v-for="card in getCards" :key="card.ID+card.isSelected" v-bind:currCard="card" />
+                <template>
+                    <div v-if="!isJudge" id="hack">
+                        <div id="cards">
+                            <Card v-for="card in getCards" :key="card.ID+card.answerPosition" v-bind:isJudge="false" v-bind:currCard="card" />
+                        </div>
+                    </div>
+                    <div v-else id="cards">
+                        <Card v-for="card in getPropositions" :key="card.ID+card.isSelected" v-bind:isJudge="true" v-bind:currCard="card" />
+                    </div>
+                </template>
+                <div v-if="currBlackCard !== undefined && currBlackCard !== null && typeof(currBlackCard) !== 'string'" id="validate">
+                    <button v-bind:disabled="!buttonSendAnswers || hasPlayed" @click="sendAnswers">{{getButtonText}}</button>
                 </div>
             </div>
         </div>
@@ -54,29 +68,67 @@ export default {
     },
     computed: {
         ...mapState({
+            buttonSendAnswers: state => state.CurrentState.SendAnswersAllowed,
+            hasPlayed: state => state.User.HasPlayed,
             currBlackCard: state => state.Room.BlackCard,
             room: state => state.Room.ID,
             participants: state => state.Room.Participants,
-            selectedCards: state => state.User.SelectedCard,
             isStarted: state => state.Room.isStarted,
-            isJudge: state => state.User.IsJudge
+            isJudge: state => state.User.IsJudge,
+            isAdmin: state => state.User.IsAdmin,
+            selectedAnswers: state => state.Room.Answers,
+            selectedAnswersIndex: state => state.Room.SelectedAnswer
         }),
-        getCards() {
-            if (this.$store.state.User.IsJudge) {
-                return this.$store.state.Room.selectedCards.filter((card) => card !== undefined && card !== null)
-            }
+        getCardText() {
+            if (!this.isJudge || this.selectedAnswersIndex === -1)
+                return [ 
+                    {
+                    "Question": this.currBlackCard.Text,
+                    "Class": "",
+                    }
+                ];
 
+            let txt = this.currBlackCard.Text;
+            let txtSplitted = txt.split(/(____)/)
+            let curr = 0;
+            let values = [];
+
+            txtSplitted.forEach(e => {
+                if (e === "____") {
+                    values.push({
+                        Question: this.selectedAnswers[this.selectedAnswersIndex].Cards[curr],
+                        Class: 'colored'
+                    })
+                    curr++
+                } else
+                    values.push({ Question: e, Class: '' })
+            });
+
+            return values
+        },
+        getCards() {
             return this.$store.state.User.Hand.filter((card) => card !== undefined && card !== null)
         },
+        getPropositions() {
+            return this.$store.state.Room.Answers
+        },
+        getButtonText() {
+            return this.$store.state.User.IsJudge ? "Voter" : "Proposer"
+        },
         isReady() {
-            // Not working...
-            return this.$store.Room && this.$store.Room.Participants.length >= 3
+            return this.$store.state.Room.Participants.length >= 3
         }
     },
     methods: {
         startGame() {
-            this.$store.dispatch('startGame')
+            this.$store.dispatch('startGame');
         },
+        sendAnswers() {
+            this.$store.dispatch('answer');
+        },
+        exit() {
+            window.location.reload();
+        }
     },
 }
 </script>
@@ -95,6 +147,7 @@ export default {
                 text-align: center;
                 margin: 0;
                 padding: .25em 0 .25em 0;
+                font-size: 2em;
             }
 
             .gameinfo {
@@ -106,19 +159,13 @@ export default {
                 right: 0;
                 margin: .25em .5em 0 0;
 
-                .buttons {
+                span {
                     text-align: right;
-
-                    button {
-                        display: inline-block;
-                        background: #3EC480;
-                        border-radius: .25em;
-                        padding: .25em;
-                        margin-left: 5px;
-                        border: none;
-                    }
                 }
 
+                .buttons {
+                    text-align: right;
+                }
             }
         }
 
@@ -165,15 +212,69 @@ export default {
                 }
 
                 #cards {
-                    flex: 0 0 100px;
-                    width: 1000px;
                     display: flex;
                     flex-direction: row;
                     align-items: center;
                     justify-content: space-around;
-                    margin-bottom: 2em;
+                    padding: 2em;
                 }
             }
+        }
+
+        #validate {
+            padding-bottom: 1em;
+
+            button {
+                padding: 1em;
+                color: #111;
+            }
+        }
+
+        button {
+            display: inline-block;
+            background: #3EC480;
+            border-radius: .25em;
+            padding: .25em;
+            margin-left: 5px;
+            border: none;
+        }
+
+        button:disabled {
+            background: darken(#3EC480, 20%);
+            color: #333;
+        }
+    }
+
+    @media (max-width: 900px){
+        header .h1 {
+            margin-left: .25em;
+            text-align: left !important;
+        }
+
+        .game-wrapper h1 {
+            font-size: 1.5em;
+        }
+    }
+
+    .colored {
+        color: #3EC480;
+    }
+
+    @media (max-width: 666px) {
+        header h1 {
+            opacity: 0; // ugly hack so we keep the reserved space
+        }
+    }
+
+        @media (max-width: 1300px){
+        h1 {
+            font-size: 1.7em;
+        }
+    }
+
+    @media (max-width: 900px){
+        h1 {
+            font-size: 1.5em;
         }
     }
 </style>

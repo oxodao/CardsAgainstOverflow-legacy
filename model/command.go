@@ -7,9 +7,9 @@ const CommandDisconnected string = "DISCONNECTED"
 const CommandPlayerList string = "PLAYER_LIST"
 const CommandStarted string = "GAME_STARTED"
 const CommandUpdateCards string = "UPDATE_CARDS"
-const CommandSendVoteCard string = "VOTING_HAND"
+const CommandSendAnswersList string = "ANSWERS_LIST"
 
 type Command struct {
-	Command   string `json:"Command"`
-	Arguments string `json:"Arguments"`
+	Command   string
+	Arguments string
 }

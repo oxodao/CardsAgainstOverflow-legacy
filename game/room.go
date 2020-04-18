@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/oxodao/cardsagainstoverflow/dal"
 	"github.com/oxodao/cardsagainstoverflow/dto"
@@ -33,6 +34,8 @@ func StartTurn(r *model.Room) {
 	if wasJudge {
 		r.Participants[0].IsJudge = true
 	}
+
+	r.Answers = make(map[*model.User][]*model.Card, len(r.Participants))
 }
 
 func StartGame(r *model.Room) {
@@ -53,6 +56,8 @@ func StartGame(r *model.Room) {
 		SendCards(r)
 		Broadcast(r, model.CommandStarted, struct{}{})
 		SendPlayerList(r)
+
+		r.Answers = make(map[*model.User][]*model.Card, len(r.Participants))
 	}
 }
 
@@ -79,6 +84,12 @@ func RoomSelectDecks(r *model.Room) error {
 	for i := range decks {
 		r.RemainingCards = append(r.RemainingCards, decks[i].Cards...)
 		r.RemainingBlackCards = append(r.RemainingBlackCards, decks[i].BlackCards...)
+	}
+
+	// We then calculate each amount of answers per card we want
+	// Maybe store this into database later but it will do for now
+	for i := range r.RemainingBlackCards {
+		r.RemainingBlackCards[i].AmtCardRequired = GetAmountCardRequired(r.RemainingBlackCards[i])
 	}
 
 	return nil
@@ -164,56 +175,6 @@ func QuitRoom(u *model.User, reason string) {
 	SendPlayerList(room)
 }
 
-type cardSelectionRequest struct {
-	SelectedCard int64
-}
-
-func SelectCard(u *model.User, card string) {
-	fmt.Println("Set selected: ", card)
-	var csr cardSelectionRequest
-	err := json.Unmarshal([]byte(card), &csr)
-	if err != nil {
-		return
-	}
-
-	foundCard, _ := FindCard(u.Room, csr.SelectedCard)
-	u.Room.SelectedCards = append(u.Room.SelectedCards, foundCard)
-
-	if len(u.Room.SelectedCards) == (len(u.Room.Participants) - 1) {
-		// Everyone has sent his answers
-
-		// @TODO: Add timer if the judge doesn't vote in 60 seconds
-		// Choose a random winner
-	}
-
-	// We find the judge and send him all selected cards
-	for i := range u.Room.Participants {
-		u := u.Room.Participants[i]
-		if u.IsJudge {
-			// We send the cards
-			SendCommand(u, model.CommandSendVoteCard, u.Room.SelectedCards)
-			break
-		}
-	}
-}
-
-func FindCard(r *model.Room, card int64) (*model.Card, *model.User) {
-	for i := range r.Participants {
-		p := r.Participants[i]
-		for j := range p.Hand {
-			if p.Hand[j].ID == card {
-				return p.Hand[j], p
-			}
-		}
-	}
-
-	return nil, nil
-}
-
-func VoteCard(u *model.User, card string) {
-
-}
-
 func SendPlayerList(r *model.Room) {
 	Broadcast(r, model.CommandPlayerList, dto.DTOPlayerList(r.Participants))
 }
@@ -228,6 +189,29 @@ func SendCards(r *model.Room) {
 			Hand:      user.Hand,
 			BlackCard: r.CurrentBlackCard,
 		})
+	}
+}
+
+func ReceiveAnswers(u *model.User, argsStr string) {
+	args := []model.Card{}
+	err := json.Unmarshal([]byte(argsStr), &args)
+	if err != nil {
+		fmt.Println("Bad answers format", err)
+		return
+	}
+
+	cardsPointers := []*model.Card{}
+	for i := range args {
+		cardsPointers = append(cardsPointers, &args[i])
+	}
+
+	u.Room.Answers[u] = cardsPointers
+	for i := range u.Room.Participants {
+		judge := u.Room.Participants[i]
+		if judge.IsJudge {
+			SendCommand(judge, model.CommandSendAnswersList, cardsPointers)
+			break
+		}
 	}
 }
 
@@ -248,4 +232,8 @@ func Broadcast(r *model.Room, cmdTxt string, arguments interface{}) {
 			fmt.Println("Failed to send command: ", err)
 		}
 	}
+}
+
+func GetAmountCardRequired(c *model.Card) int {
+	return strings.Count(c.Text, "____")
 }

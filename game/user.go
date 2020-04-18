@@ -41,16 +41,8 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 		}
 		break
 
-	case "SELECT_CARD":
-		if !u.IsJudge {
-			SelectCard(u, cmd.Arguments)
-		}
-		break
-
-	case "VOTE":
-		if u.IsJudge {
-			VoteCard(u, cmd.Arguments)
-		}
+	case "SEND_ANSWERS":
+		ReceiveAnswers(u, cmd.Arguments)
 		break
 
 	default:

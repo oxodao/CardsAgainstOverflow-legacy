@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	gonanoid "github.com/matoous/go-nanoid"
+	"github.com/oxodao/cardsagainstoverflow/dto"
 	"github.com/oxodao/cardsagainstoverflow/game"
 	"github.com/oxodao/cardsagainstoverflow/model"
 )
@@ -45,13 +46,7 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 	game.Users = append(game.Users, *client)
 
 	fmt.Printf("User connected! [Name: %v; Room: %v]\n", client.Username, client.Room.RoomID)
-	game.SendCommand(client, model.CommandConnected, struct {
-		Username string
-		Room     string
-	}{
-		client.Username,
-		client.Room.RoomID,
-	})
+	game.SendCommand(client, model.CommandConnected, dto.DTOConnection(client))
 
 	go game.Receive(client)
 

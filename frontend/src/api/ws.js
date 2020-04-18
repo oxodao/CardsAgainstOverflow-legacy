@@ -6,6 +6,7 @@ export function connect(e) {
     let ws = new WebSocket("ws://localhost:8000/api?username=" + this.username + "&room=" + this.room)
     ws.onmessage = (e) => parseMessage(store, toasted, e.data);
     ws.onerror = (e) => console.log("ERR: ", e);
+    ws.onclose = (e) => console.log("Connection closed: ", e)
 
     window.setInterval(function() {
         ws.send(JSON.stringify({
@@ -55,8 +56,8 @@ export function parseMessage(store, toasted, msg) {
             store.commit('updateCards', cmd.Arguments)
             break;
 
-        case 'VOTING_HAND':
-            store.commit('setVotingCards', cmd.Arguments)
+        case 'ANSWERS_LIST':
+            store.commit('addToAnswersList', cmd.Arguments)
             break;
 
         default:

@@ -1,10 +1,13 @@
 <template>
-    <div class="card" @click="setSelected(currCard.ID)" v-bind:class="getClassnameIsSelected">
+    <div class="card" @click="toggleSelection(currCard)" v-bind:class="getClassnameIsSelected">
         <p>{{currCard.Text}}</p>
         <div class="branding">
             <span>Cards</span>
             <span>Against</span>
             <span>Overflow</span>
+        </div>
+        <div v-if="showPosition" id="position">
+            {{ getSelectedPosition+1 }}
         </div>
     </div>
 </template>
@@ -14,21 +17,38 @@ export default {
     name: 'Card',
     props: [
         'currCard',
+        'isJudge'
     ],
     data: function() {
         return {
             currentCard: this.currCard,
+            isPlayerJudge: this.isJudge
         }
     },
     computed: {
-        getClassnameIsSelected: function() {
-            return this.currentCard.isSelected ? "isSelected" : ""
+        getClassnameIsSelected() {
+            if (this.isPlayerJudge)
+                return this.currentCard.IsSelected ? "isSelected" : ""
+
+            return this.currentCard.answerPosition !== -1 ? "isSelected" : ""
+        },
+        getTextCard() {
+            return ""
+        },
+        getSelectedPosition() {
+            return this.currentCard.answerPosition
+        },
+        showPosition() {
+            return this.currentCard.answerPosition !== -1 && !this.isPlayerJudge && this.$store.state.Room.BlackCard.AmtCardRequired> 1 
         }
     },
     methods: {
-        setSelected(id) {
-            this.$store.dispatch('setSelected', id);
-        } 
+        toggleSelection: function(card) {
+            if (this.$store.getters.IsPlayerJudge)
+                this.$store.commit('toggleAnswerSelection', card)
+            else
+                this.$store.commit('toggleSelection', card)
+        }
     }
 }
 </script>
@@ -73,14 +93,28 @@ export default {
                 display: block;
                 margin-right: 5px;
             }
-
         }
-
     }
 
     .isSelected {
         transform: translateY(-20px);
         box-shadow: 1px 1px 7px rgba(0, 0, 0, .9);
+    }
+
+    #position {
+        position: absolute;
+        width: 2em;
+        height: 2em;
+        border-radius: 50%;
+        background: #3EC480;
+        border: 1px solid darken(#3EC480, 5%);
+
+        top: -1em;
+        right: -1em;
+
+        text-align: center;
+        line-height: 2em;
+
     }
 
 </style>
