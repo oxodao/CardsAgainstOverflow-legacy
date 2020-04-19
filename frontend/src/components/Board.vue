@@ -22,7 +22,7 @@
 
                 <h2>Joueurs</h2>
                 <ul>
-                    <PlayerName v-for="player in participants" :key="player.Username" v-bind:username="player.Username" v-bind:isAdmin="player.IsAdmin" v-bind:isJudge="player.IsJudge" />
+                    <PlayerName v-for="player in participants" :key="player.Username + player.Score +player.IsJudge+player.IsAdmin" v-bind:username="player.Username" v-bind:score="player.Score" v-bind:isAdmin="player.IsAdmin" v-bind:isJudge="player.IsJudge" />
                 </ul>
             </nav>
             <div class="game">
@@ -48,7 +48,7 @@
                     </div>
                 </template>
                 <div v-if="currBlackCard !== undefined && currBlackCard !== null && typeof(currBlackCard) !== 'string'" id="validate">
-                    <button v-bind:disabled="!buttonSendAnswers || hasPlayed" @click="sendAnswers">{{getButtonText}}</button>
+                    <button v-bind:disabled="!((!isJudge && buttonSendAnswers) || (isJudge && selectedAnswersIndex !== -1)) || hasPlayed" @click="sendAnswers">{{getButtonText}}</button>
                 </div>
             </div>
         </div>
@@ -76,8 +76,8 @@ export default {
             isStarted: state => state.Room.isStarted,
             isJudge: state => state.User.IsJudge,
             isAdmin: state => state.User.IsAdmin,
-            selectedAnswers: state => state.Room.Answers,
-            selectedAnswersIndex: state => state.Room.SelectedAnswer
+            selectedAnswers: state => state.Judge.Answers,
+            selectedAnswersIndex: state => state.Judge.SelectedAnswer
         }),
         getCardText() {
             if (!this.isJudge || this.selectedAnswersIndex === -1)
@@ -110,7 +110,7 @@ export default {
             return this.$store.state.User.Hand.filter((card) => card !== undefined && card !== null)
         },
         getPropositions() {
-            return this.$store.state.Room.Answers
+            return this.$store.state.Judge.Answers
         },
         getButtonText() {
             return this.$store.state.User.IsJudge ? "Voter" : "Proposer"

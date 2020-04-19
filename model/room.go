@@ -10,6 +10,7 @@ type Room struct {
 	JoinEvent        chan *User
 	ZenMode          bool
 	Turn             int
+	MaxTurn          int
 	Started          bool
 	CurrentBlackCard *Card
 
@@ -18,6 +19,8 @@ type Room struct {
 
 	RemainingCards      []*Card
 	RemainingBlackCards []*Card
+	UsedCards           []*Card
+	UsedBlackCards      []*Card
 
 	Answers map[*User][]*Card
 }
@@ -39,6 +42,9 @@ func (r *Room) PickCard() *Card {
 
 	r.RemainingCards[cardPicked] = r.RemainingCards[len(r.RemainingCards)-1]
 	r.RemainingCards = r.RemainingCards[:len(r.RemainingCards)-1]
+
+	r.UsedCards = append(r.UsedCards, card)
+
 	return card
 }
 
@@ -52,11 +58,12 @@ func (r *Room) PickBlackCard() *Card {
 	}
 
 	cardPicked := rand.Intn(i)
-	//card := r.RemainingBlackCards[cardPicked]
+	card := r.RemainingBlackCards[cardPicked]
 
 	r.RemainingBlackCards[cardPicked] = r.RemainingBlackCards[len(r.RemainingBlackCards)-1]
 	r.RemainingBlackCards = r.RemainingBlackCards[:len(r.RemainingBlackCards)-1]
 
-	//return card
-	return r.RemainingBlackCards[len(r.RemainingBlackCards)-1]
+	r.UsedBlackCards = append(r.UsedBlackCards, card)
+
+	return card
 }

@@ -1,8 +1,11 @@
 <template>
     <li v-bind:class="isMe">
-        <img v-if="isAdmin" src="@/assets/admin.png" alt="Admin"/>
-        <img v-if="isJudge" src="@/assets/gavel.png" alt="Judge"/>
-        <span>{{ username }}</span>
+        <div>
+            <img v-if="isAdmin" src="@/assets/admin.png" alt="Admin"/>
+            <img v-if="isJudge" src="@/assets/gavel.png" alt="Judge"/>
+            <span>{{ username }}</span>
+        </div>
+        <span class="score">{{ score }}</span>
     </li>
 </template>
 
@@ -11,6 +14,7 @@ export default {
     name: 'PlayerName',
     props: [
         'username',
+        'score',
         'isAdmin',
         'isJudge'
     ],
@@ -38,13 +42,23 @@ export default {
         margin-bottom: 5px;
         padding: 5px;
 
-        img {
-            height: 1.15em;
-            margin-right: 10px;
+        div {
+            flex: 1;
+            text-align: center;
+            img {
+                height: 1.15em;
+                margin-right: 10px;
+            }
+
+            &.isMe {
+                background: #333;
+            }
         }
 
-        &.isMe {
-            background: #333;
+        .score {
+            width: 5em;
+            border-left: 1px solid #111;
+            text-align: center;
         }
     }
 </style>

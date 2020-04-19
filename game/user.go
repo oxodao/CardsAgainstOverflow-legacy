@@ -37,7 +37,7 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 
 	case "START_GAME":
 		if u.IsAdmin {
-			StartGame(u.Room)
+			StartGame(u.Room, []int{})
 		}
 		break
 

@@ -15,7 +15,6 @@ export default new Vuex.Store({
             Hand: [],
             Answer: [],
             HasPlayed: false,
-            SelectedAnswersIndex: -1,
             IsJudge: false,
             IsAdmin: false,
         },
@@ -23,7 +22,9 @@ export default new Vuex.Store({
             ID: '',
             BlackCard: '',
             isStarted: false,
-            Participants: [],
+            Participants: []
+        },
+        Judge: {
             Answers: [],
             SelectedAnswer: -1
         },
@@ -55,7 +56,8 @@ export default new Vuex.Store({
         },
         updateCards: (state, payload) => {
             state.Room.BlackCard = payload.BlackCard
-            state.Room.Answers = []
+            state.Judge.Answers = []
+            state.Judge.SelectedAnswer = -1
 
             // This array is a fixed-sized array
             // This let us remove card and put them back without causing issues
@@ -94,25 +96,25 @@ export default new Vuex.Store({
             if (state.User.HasPlayed)
                 return
 
-            let selected = state.Room.SelectedAnswer;
+            let selected = state.Judge.SelectedAnswer;
 
             if (selected !== -1) {
-                state.Room.Answers[selected].IsSelected = false;
-                state.Room.SelectedAnswer = -1;
+                state.Judge.Answers[selected].IsSelected = false;
+                state.Judge.SelectedAnswer = -1;
             }
 
             if (payload.ID !== selected) {
-                state.Room.Answers.forEach((e, i) => {
+                state.Judge.Answers.forEach((e, i) => {
                     if (e.ID == payload.ID) {
-                        state.Room.SelectedAnswer = i;
-                        state.Room.Answers[i].IsSelected = true;
+                        state.Judge.SelectedAnswer = i;
+                        state.Judge.Answers[i].IsSelected = true;
                     }
                 })
             }
         },
         addToAnswersList: (state, payload) => {
-            Vue.set(state.Room.Answers, state.Room.Answers.length, {
-                Text: "Proposition #" + (state.Room.Answers.length+1),
+            Vue.set(state.Judge.Answers, state.Judge.Answers.length, {
+                Text: "Proposition #" + (state.Judge.Answers.length+1),
                 Cards: payload.map(e => e.Text),
                 ID: payload[0].ID,
                 IsSelected: false,
@@ -120,9 +122,6 @@ export default new Vuex.Store({
         },
         played: (state) => {
             state.User.HasPlayed = true
-        },
-        setSelectedAnswersIndex: (state, payload) => {
-            state.User.SelectedAnswersIndex = payload
         }
     },
     actions: {
@@ -130,14 +129,23 @@ export default new Vuex.Store({
             ctx.state.Websocket.send(JSON.stringify({ Command: "START_GAME", Arguments: "{}" }))
         },
         answer: (ctx) => {
-            ctx.state.Websocket.send(JSON.stringify({
-                Command: 'SEND_ANSWERS',
-                Arguments: JSON.stringify(ctx.state.User.Answer.map(e => ({
-                        ID: e.ID,
-                        Text: e.Text,
-                        IsBlackCard: e.IsBlackCard
-                    })))
-            }))
+            if (ctx.state.User.IsJudge) {
+                ctx.state.Websocket.send(JSON.stringify({
+                    Command: 'SEND_ANSWERS',
+                    Arguments: JSON.stringify([
+                        ctx.state.Judge.Answers[ctx.state.Judge.SelectedAnswer]
+                    ])
+                }))
+            } else {
+                ctx.state.Websocket.send(JSON.stringify({
+                    Command: 'SEND_ANSWERS',
+                    Arguments: JSON.stringify(ctx.state.User.Answer.map(e => ({
+                            ID: e.ID,
+                            Text: e.Text,
+                            IsBlackCard: e.IsBlackCard
+                        })))
+                }))
+            }
             ctx.commit('played')
         },
     },

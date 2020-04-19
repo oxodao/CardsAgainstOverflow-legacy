@@ -8,42 +8,50 @@ import (
 	"github.com/oxodao/cardsagainstoverflow/dal"
 	"github.com/oxodao/cardsagainstoverflow/dto"
 	"github.com/oxodao/cardsagainstoverflow/model"
+	"github.com/oxodao/cardsagainstoverflow/utils"
 )
 
 var Rooms []*model.Room = make([]*model.Room, 0)
 
 func StartTurn(r *model.Room) {
+	fmt.Println("Turn is over. Let's go for another one")
 	r.CurrentBlackCard = r.PickBlackCard()
 
 	// If the previous player in the list was judge we set it to the current one
 	wasJudge := false
-	for i := range r.Participants {
-		FillHand(r.Participants[i])
+	for _, p := range r.Participants {
+		FillHand(p)
+
+		willBeJudge := false
 		if wasJudge {
-			r.Participants[i].IsJudge = true
+			willBeJudge = true
 		}
-		wasJudge = r.Participants[i].IsJudge
-		r.Participants[i].IsJudge = false
+		wasJudge = p.IsJudge
+		p.IsJudge = willBeJudge
+
+		fmt.Printf("Player %v isJudge: %v\n", p.Username, p.IsJudge)
 	}
-
-	r.SelectedCards = []*model.Card{}
-
-	SendCards(r)
 
 	// If the last player was judge, we set the first player as
 	if wasJudge {
 		r.Participants[0].IsJudge = true
+		fmt.Println("First player is now judge")
 	}
+
+	SendPlayerList(r)
+
+	r.SelectedCards = []*model.Card{}
+	SendCards(r)
 
 	r.Answers = make(map[*model.User][]*model.Card, len(r.Participants))
 }
 
-func StartGame(r *model.Room) {
+func StartGame(r *model.Room, decks []int) {
 	if r.IsReady() {
 		r.Started = true
 		r.Participants[0].IsJudge = true
 
-		RoomSelectDecks(r)
+		RoomSelectDecks(r, decks)
 
 		r.CurrentBlackCard = r.PickBlackCard()
 
@@ -61,11 +69,11 @@ func StartGame(r *model.Room) {
 	}
 }
 
-func RoomSelectDecks(r *model.Room) error {
+func RoomSelectDecks(r *model.Room, selectedDecks []int) error {
 	var err error
 	var decks []*model.Deck
 
-	if r.SelectedDecks == nil {
+	if len(selectedDecks) == 0 {
 		decks, err = dal.FetchAllDecks() // @TODO: use only what players want
 		if err != nil {                  // Use selected decks. Fallback on FatchAllDecks only when no deck are selected
 			return err
@@ -205,14 +213,56 @@ func ReceiveAnswers(u *model.User, argsStr string) {
 		cardsPointers = append(cardsPointers, &args[i])
 	}
 
-	u.Room.Answers[u] = cardsPointers
-	for i := range u.Room.Participants {
-		judge := u.Room.Participants[i]
-		if judge.IsJudge {
-			SendCommand(judge, model.CommandSendAnswersList, cardsPointers)
-			break
+	if u.IsJudge {
+		r := u.Room
+		winner := FindWinnerFromCard(r, cardsPointers[0])
+		// If it is not...
+		// Oh dear we're in trouble
+		if winner != nil {
+			winner.Score = winner.Score + 1
+
+			// We remove used cards from player hands
+
+			// For each user we have a set of answers
+			for u, a := range r.Answers {
+				// For each answer
+				for _, currAnswer := range a {
+					u.Hand = utils.FilterCard(u.Hand, func(cc *model.Card) bool {
+						return currAnswer.ID != cc.ID
+					})
+				}
+			}
+
+			// We clear the answers received
+			r.Answers = make(map[*model.User][]*model.Card, 0)
+
+			// Start a new turn
+			// No need to broadcast the winner (Client can simply diff from last state)
+			// No need to broadcast playerlist because starting a turn sets the judge thus sending the list
+			StartTurn(r)
+		}
+	} else {
+		u.Room.Answers[u] = cardsPointers
+		for i := range u.Room.Participants {
+			judge := u.Room.Participants[i]
+			if judge.IsJudge {
+				SendCommand(judge, model.CommandSendAnswersList, cardsPointers)
+				break
+			}
 		}
 	}
+}
+
+func FindWinnerFromCard(r *model.Room, c *model.Card) *model.User {
+	for k := range r.Answers {
+		for j := range r.Answers[k] {
+			if r.Answers[k][j].ID == c.ID {
+				return k
+			}
+		}
+	}
+
+	return nil
 }
 
 func SendCardsToUser(user *model.User) {
