@@ -43,6 +43,13 @@ func StartTurn(r *model.Room) {
 	r.SelectedCards = []*model.Card{}
 	SendCards(r)
 
+	for _, player := range r.Participants {
+		err := SendCommand(player, model.CommandSetGamestate, dto.Gamestate(player))
+		if err != nil {
+			fmt.Println("Err: ", err)
+		}
+	}
+
 	r.Answers = make(map[*model.User][]*model.Card, len(r.Participants))
 }
 
@@ -224,6 +231,8 @@ func ReceiveAnswers(u *model.User, argsStr string) {
 			// We remove used cards from player hands
 
 			// For each user we have a set of answers
+			// @TODO: Something is wrong here, sometimes it panic!
+			// In the filter function, some pointer is nil
 			for u, a := range r.Answers {
 				// For each answer
 				for _, currAnswer := range a {

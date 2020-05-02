@@ -44,6 +44,10 @@ export function parseMessage(store, toasted, msg) {
             console.log("Add to logs")
             break;
 
+        case 'SET_GAMESTATE':
+            store.commit('setState', cmd.Arguments)
+            break;
+
         case 'PLAYER_LIST':
             store.commit('setPlayerList', cmd.Arguments)
             break;

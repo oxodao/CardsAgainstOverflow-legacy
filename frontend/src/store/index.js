@@ -54,6 +54,10 @@ export default new Vuex.Store({
                 }
             });
         },
+        setState: (state, payload) => {
+            console.log(payload)
+            state = payload
+        },
         updateCards: (state, payload) => {
             state.Room.BlackCard = payload.BlackCard
             state.Judge.Answers = []

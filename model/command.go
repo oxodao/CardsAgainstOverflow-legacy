@@ -9,6 +9,8 @@ const CommandStarted string = "GAME_STARTED"
 const CommandUpdateCards string = "UPDATE_CARDS"
 const CommandSendAnswersList string = "ANSWERS_LIST"
 
+const CommandSetGamestate string = "SET_GAMESTATE"
+
 type Command struct {
 	Command   string
 	Arguments string

@@ -7,22 +7,21 @@ import (
 type Room struct {
 	RoomID           string
 	Participants     []*User
-	JoinEvent        chan *User
 	ZenMode          bool
 	Turn             int
 	MaxTurn          int
 	Started          bool
 	CurrentBlackCard *Card
 
-	SelectedDecks []*Card
-	SelectedCards []*Card
+	SelectedDecks []*Card `json:"-"`
+	SelectedCards []*Card `json:"-"`
 
-	RemainingCards      []*Card
-	RemainingBlackCards []*Card
-	UsedCards           []*Card
-	UsedBlackCards      []*Card
+	RemainingCards      []*Card `json:"-"`
+	RemainingBlackCards []*Card `json:"-"`
+	UsedCards           []*Card `json:"-"`
+	UsedBlackCards      []*Card `json:"-"`
 
-	Answers map[*User][]*Card
+	Answers map[*User][]*Card `json:"-"`
 }
 
 func (r *Room) IsReady() bool {
