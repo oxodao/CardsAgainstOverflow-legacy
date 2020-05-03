@@ -29,6 +29,7 @@ func Receive(u *model.User) {
 	}
 }
 
+// ExecuteCommand parses and execute a command sent by a user
 func ExecuteCommand(u *model.User, cmd model.Command) {
 	switch cmd.Command {
 	case "PING":
@@ -41,7 +42,7 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 		}
 		break
 
-	case "SEND_ANSWERS":
+	case "SEND_SELECTION":
 		ReceiveAnswers(u, cmd.Arguments)
 		break
 
@@ -50,6 +51,7 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 	}
 }
 
+// SendCommand sends a command to a user
 func SendCommand(u *model.User, command string, payload interface{}) error {
 	content, err := json.Marshal(payload)
 	if err != nil {
@@ -64,11 +66,13 @@ func SendCommand(u *model.User, command string, payload interface{}) error {
 	return err
 }
 
+// Kick disconnects a user from the server
 func Kick(u *model.User, reason string) {
 	fmt.Printf("- Disconnecting %v: %v", u.Username, reason)
 	QuitRoom(u, reason)
 }
 
+// FillHand refill the user's hand after a turn
 func FillHand(u *model.User) {
 	for i := range u.Hand {
 		if u.Hand[i] == nil {

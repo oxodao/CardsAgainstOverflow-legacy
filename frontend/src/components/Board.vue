@@ -16,6 +16,7 @@
                 </div>
             </div>
         </header>
+        <Countdown />
         <div class="game-wrapper">
             <nav>
                 <img src="../assets/logo.png"/>
@@ -38,18 +39,21 @@
                     </h1>
                 </div>
                 <template>
-                    <div v-if="!isJudge" id="hack">
+                    <div v-if="turnState === 0 && !isJudge" id="hack">
                         <div id="cards">
-                            <Card v-for="card in getCards" :key="card.ID+card.answerPosition" v-bind:isJudge="false" v-bind:currCard="card" />
+                            <Card v-for="(card, index) in getCards" :key="card.ID+card.isSelected" v-bind:index="index" v-bind:isJudge="false" v-bind:currCard="card" />
                         </div>
                     </div>
-                    <div v-else id="cards">
-                        <Card v-for="card in getPropositions" :key="card.ID+card.isSelected" v-bind:isJudge="true" v-bind:currCard="card" />
+                    <div v-else-if="turnState === 0 && isJudge">
+                        <h3>Les joueurs jouent!</h3>
+                    </div>
+                    <div v-else-if="turnState === 1">
+
+                    </div>
+                    <div v-else-if="turnState === 2">
+                        Le gagnant de la manche est USERNAME
                     </div>
                 </template>
-                <div v-if="currBlackCard !== undefined && currBlackCard !== null && typeof(currBlackCard) !== 'string'" id="validate">
-                    <button v-bind:disabled="!((!isJudge && buttonSendAnswers) || (isJudge && selectedAnswersIndex !== -1)) || hasPlayed" @click="sendAnswers">{{getButtonText}}</button>
-                </div>
             </div>
         </div>
     </div>
@@ -58,45 +62,50 @@
 <script>
 import {mapState} from 'vuex';
 import Card from './Card';
+import Countdown from './Countdown';
 import PlayerName from './PlayerName';
 
 export default {
     name: 'Board',
     components: {
         PlayerName,
-        Card
+        Card,
+        Countdown
     },
     computed: {
         ...mapState({
             buttonSendAnswers: state => state.CurrentState.SendAnswersAllowed,
             hasPlayed: state => state.User.HasPlayed,
-            currBlackCard: state => state.Room.BlackCard,
-            room: state => state.Room.ID,
+            currBlackCard: state => state.Room.CurrentBlackCard,
+            room: state => state.Room.RoomID,
             participants: state => state.Room.Participants,
-            isStarted: state => state.Room.isStarted,
+            isStarted: state => state.Room.Started,
             isJudge: state => state.User.IsJudge,
+            turnState: state => state.Room.TurnState,
             isAdmin: state => state.User.IsAdmin,
-            selectedAnswers: state => state.Judge.Answers,
-            selectedAnswersIndex: state => state.Judge.SelectedAnswer
         }),
+        getCards() {
+            return this.$store.state.User.Hand.filter((card) => card !== undefined && card !== null)
+        },
+        getPropositions() {
+            return [] //this.$store.state.Judge.Answers
+        },
         getCardText() {
-            if (!this.isJudge || this.selectedAnswersIndex === -1)
+            if (!this.isJudge || !this.isJudgingTurn)
                 return [ 
                     {
                     "Question": this.currBlackCard.Text,
                     "Class": "",
                     }
                 ];
-
             let txt = this.currBlackCard.Text;
             let txtSplitted = txt.split(/(____)/)
             let curr = 0;
             let values = [];
-
             txtSplitted.forEach(e => {
                 if (e === "____") {
                     values.push({
-                        Question: this.selectedAnswers[this.selectedAnswersIndex].Cards[curr],
+                        Question: "ANSW" + curr, //this.selectedAnswers[this.selectedAnswersIndex].Cards[curr],
                         Class: 'colored'
                     })
                     curr++
@@ -105,15 +114,6 @@ export default {
             });
 
             return values
-        },
-        getCards() {
-            return this.$store.state.User.Hand.filter((card) => card !== undefined && card !== null)
-        },
-        getPropositions() {
-            return this.$store.state.Judge.Answers
-        },
-        getButtonText() {
-            return this.$store.state.User.IsJudge ? "Voter" : "Proposer"
         },
         isReady() {
             return this.$store.state.Room.Participants.length >= 3

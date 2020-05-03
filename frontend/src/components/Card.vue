@@ -1,5 +1,5 @@
 <template>
-    <div class="card" @click="toggleSelection(currCard)" v-bind:class="getClassnameIsSelected">
+    <div class="card" @click="toggleSelection(index)" v-bind:class="getClassnameIsSelected">
         <p>{{currCard.Text}}</p>
         <div class="branding">
             <span>Cards</span>
@@ -7,7 +7,7 @@
             <span>Overflow</span>
         </div>
         <div v-if="showPosition" id="position">
-            {{ getSelectedPosition+1 }}
+            {{ getSelectedPosition }}
         </div>
     </div>
 </template>
@@ -17,37 +17,29 @@ export default {
     name: 'Card',
     props: [
         'currCard',
+        'index',
         'isJudge'
     ],
     data: function() {
         return {
-            currentCard: this.currCard,
+            currentCard: this.index,
             isPlayerJudge: this.isJudge
         }
     },
     computed: {
         getClassnameIsSelected() {
-            if (this.isPlayerJudge)
-                return this.currentCard.IsSelected ? "isSelected" : ""
-
-            return this.currentCard.answerPosition !== -1 ? "isSelected" : ""
-        },
-        getTextCard() {
-            return ""
+            return this.$store.state.SelectedCards.includes(this.currentCard) ? "isSelected" : "";
         },
         getSelectedPosition() {
-            return this.currentCard.answerPosition
+            return this.$store.state.SelectedCards.indexOf(this.currentCard) + 1
         },
         showPosition() {
-            return this.currentCard.answerPosition !== -1 && !this.isPlayerJudge && this.$store.state.Room.BlackCard.AmtCardRequired> 1 
+            return !this.isPlayerJudge && this.$store.state.Room.CurrentBlackCard.AmtCardRequired > 1 && this.$store.state.SelectedCards.includes(this.index)
         }
     },
     methods: {
         toggleSelection: function(card) {
-            if (this.$store.getters.IsPlayerJudge)
-                this.$store.commit('toggleAnswerSelection', card)
-            else
-                this.$store.commit('toggleSelection', card)
+            this.$store.dispatch('select', card)
         }
     }
 }

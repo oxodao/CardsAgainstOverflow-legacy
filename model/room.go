@@ -4,6 +4,19 @@ import (
 	"math/rand"
 )
 
+// TurnState represent the current state in a turn
+type TurnState int
+
+// TurnStatePlayer is set when the player can send answers
+const TurnStatePlayer TurnState = 0
+
+// TurnStateJudge is set when no one except the judge can vote
+const TurnStateJudge TurnState = 1
+
+// TurnStateShowWinner is set during a short period of time when the judge has sent its answer to be displayed to everyone
+const TurnStateShowWinner TurnState = 2
+
+// Room represents a room
 type Room struct {
 	RoomID           string
 	Participants     []*User
@@ -13,6 +26,9 @@ type Room struct {
 	Started          bool
 	CurrentBlackCard *Card
 
+	TurnState        TurnState
+	CurrentCountdown int `json:"-"`
+
 	SelectedDecks []*Card `json:"-"`
 	SelectedCards []*Card `json:"-"`
 
@@ -21,13 +37,17 @@ type Room struct {
 	UsedCards           []*Card `json:"-"`
 	UsedBlackCards      []*Card `json:"-"`
 
-	Answers map[*User][]*Card `json:"-"`
+	Answers       []*Proposal
+	WinningAnswer *Proposal
+	Winner        string
 }
 
+// IsReady returns whether the game can start
 func (r *Room) IsReady() bool {
 	return len(r.Participants) >= 3
 }
 
+// PickCard picks a new white card and put it in the used backlog
 func (r *Room) PickCard() *Card {
 	i := len(r.RemainingCards)
 	// If i == 0 => No more cards available
@@ -47,6 +67,7 @@ func (r *Room) PickCard() *Card {
 	return card
 }
 
+// PickBlackCard picks a new black card and put it in the used backlog
 func (r *Room) PickBlackCard() *Card {
 	i := len(r.RemainingBlackCards)
 
