@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
 
 	"github.com/oxodao/cardsagainstoverflow/dal"
@@ -14,19 +15,21 @@ import (
 // Rooms is the list of all rooms on the server
 var Rooms []*model.Room = make([]*model.Room, 0)
 
-const DefaultCountdown int = 10
+const DefaultCountdown int = 20
 
 // StartTurn starts a turn
 func StartTurn(r *model.Room, gameStarting bool) {
 	r.CurrentBlackCard = r.PickBlackCard()
 
 	if gameStarting {
-		fmt.Println("Starting game!")
+		Log(r, "Starting game!")
 		for i := range r.Participants {
 			FillHand(r.Participants[i])
 		}
 	} else {
-		fmt.Println("Turn is over. Let's go for another one")
+		Log(r, "Turn is over. Let's go for another one")
+		r.Turn = r.Turn + 1
+
 		// If the previous player in the list was judge we set it to the current one
 		wasJudge := false
 		for _, p := range r.Participants {
@@ -38,17 +41,22 @@ func StartTurn(r *model.Room, gameStarting bool) {
 			}
 			wasJudge = p.IsJudge
 			p.IsJudge = willBeJudge
+			p.SelectedCards = []int{}
 		}
 
 		// If the last player was judge, we set the first player as
 		if wasJudge {
 			r.Participants[0].IsJudge = true
-			fmt.Println("First player is now judge")
 		}
 	}
 
 	r.SelectedCards = []*model.Card{}
+	// @TODO: personnalisable
+	r.CurrentCountdown = DefaultCountdown
+
 	r.Answers = []*model.Proposal{}
+	r.Winner = ""
+	r.WinningAnswer = nil
 
 	r.TurnState = model.TurnStatePlayer
 
@@ -62,9 +70,6 @@ func StartTurn(r *model.Room, gameStarting bool) {
 			fmt.Println("Err: ", err)
 		}
 	}
-
-	// @TODO: personnalisable
-	r.CurrentCountdown = DefaultCountdown
 }
 
 // StartGame starts the game
@@ -123,10 +128,14 @@ func Join(u *model.User, r *model.Room) {
 		FillHand(u)
 	}
 
+	Log(r, u.Username+" has joined the room.")
+
 	SendPlayerList(r)
 }
 
 func QuitRoom(u *model.User, reason string) {
+	Log(u.Room, u.Username+" has left the room.")
+
 	// Setting the next player as the current player
 	// If the user was admin, setting the next player as admin
 	index := -1
@@ -185,7 +194,7 @@ func QuitRoom(u *model.User, reason string) {
 		}
 
 		if index >= 0 {
-			fmt.Println("Removing room #" + room.RoomID)
+			Log(room, "Removing the room, no one is inside.")
 			Rooms = append(Rooms[:index], Rooms[index+1:]...)
 		}
 	}
@@ -200,15 +209,19 @@ func ReceiveAnswers(u *model.User, argsString string) {
 	args := []int{}
 	err := json.Unmarshal([]byte(argsString), &args)
 	if err != nil {
-		fmt.Println("Can't parse the received cards!")
+		Log(u.Room, u.Username+" > Can't parse the received cards!")
 		return
 	}
-
-	fmt.Printf("Received answers: %v\n", args)
 
 	if u.IsJudge {
 		if u.Room.TurnState == model.TurnStateJudge {
 			// The judge has given his verdict!
+			winnerCard := args[0]
+			if len(u.Room.Answers) >= winnerCard {
+				u.Room.WinningAnswer = u.Room.Answers[winnerCard]
+			}
+
+			Broadcast(u.Room, model.CommandJudgeSelection, winnerCard)
 		}
 	} else {
 		if u.Room.TurnState == model.TurnStatePlayer {
@@ -250,29 +263,55 @@ func CountdownProcess(r *model.Room) {
 			// @TODO: personnalisable
 			r.CurrentCountdown = DefaultCountdown
 
-			r.Answers = []*model.Proposal{}
 			for _, p := range r.Participants {
-				cards := []*model.Card{}
-				for _, a := range p.SelectedCards {
-					cards = append(cards, p.Hand[a])
+				// We don't take the judge
+				if p.IsJudge {
+					continue
 				}
 
-				r.Answers = append(r.Answers, &model.Proposal{
-					Cards: cards,
-					User:  p,
-				})
+				if utils.HasPlayerPlayed(r.CurrentBlackCard, p.SelectedCards) {
+					cards := []*model.Card{}
+					if p.SelectedCards != nil {
+						for _, a := range p.SelectedCards {
+							cards = append(cards, p.Hand[a])
+						}
+					}
+
+					r.Answers = append(r.Answers, &model.Proposal{
+						Cards: cards,
+						User:  p,
+					})
+				}
 			}
 
 			utils.Shuffle(r.Answers)
+
+			for i, c := range r.Answers {
+				c.ID = i
+			}
 		} else if r.TurnState == model.TurnStateJudge {
+			if len(r.Answers) == 0 {
+				StartTurn(r, false)
+				return
+			}
+
 			r.TurnState = model.TurnStateShowWinner
 			r.CurrentCountdown = 6
 
 			if r.WinningAnswer == nil {
 				// The judge has not answered so we'll give it to a random player
+				size := len(r.Answers) - 1
+
+				if size == 0 {
+					return
+				}
+
+				selected := rand.Intn(size)
+				r.WinningAnswer = r.Answers[selected]
 			}
 
 			r.Winner = r.WinningAnswer.User.Username
+			r.WinningAnswer.User.Score = r.WinningAnswer.User.Score + 1
 		}
 
 		// Send GameState

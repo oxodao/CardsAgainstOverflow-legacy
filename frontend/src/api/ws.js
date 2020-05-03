@@ -52,6 +52,10 @@ export function parseMessage(store, toasted, msg) {
             store.commit('setCountdown', cmd.Arguments)
             break;
 
+        case 'JUDGE_SELECTION':
+            store.commit('setJudgeSelection', cmd.Arguments)
+            break;
+
         default:
             console.log("UNHANDLED COMMAND: " + cmd.Command)
     }

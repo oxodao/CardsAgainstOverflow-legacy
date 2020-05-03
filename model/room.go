@@ -37,15 +37,20 @@ type Room struct {
 	UsedCards           []*Card `json:"-"`
 	UsedBlackCards      []*Card `json:"-"`
 
-	Answers       []*Proposal
-	WinningAnswer *Proposal
-	Winner        string
+	JudgeSelection int
+	Answers        []*Proposal
+	WinningAnswer  *Proposal
+	Winner         string
 }
 
 // IsReady returns whether the game can start
 func (r *Room) IsReady() bool {
 	return len(r.Participants) >= 3
 }
+
+/**
+	@TODO: When there are no more cards, refill with used cards
+**/
 
 // PickCard picks a new white card and put it in the used backlog
 func (r *Room) PickCard() *Card {

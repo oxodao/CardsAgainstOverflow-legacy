@@ -1,12 +1,12 @@
 <template>
     <div class="card" @click="toggleSelection(index)" v-bind:class="getClassnameIsSelected">
-        <p>{{currCard.Text}}</p>
+        <p>{{ !isProposal ? currCard.Text : "Proposition #" + (index+1)}}</p>
         <div class="branding">
             <span>Cards</span>
             <span>Against</span>
             <span>Overflow</span>
         </div>
-        <div v-if="showPosition" id="position">
+        <div v-if="showPosition && !isProposal" id="position">
             {{ getSelectedPosition }}
         </div>
     </div>
@@ -17,29 +17,43 @@ export default {
     name: 'Card',
     props: [
         'currCard',
+        'isProposal',
         'index',
-        'isJudge'
     ],
     data: function() {
         return {
             currentCard: this.index,
-            isPlayerJudge: this.isJudge
         }
     },
     computed: {
         getClassnameIsSelected() {
-            return this.$store.state.SelectedCards.includes(this.currentCard) ? "isSelected" : "";
+            if (this.$store.state.Room.TurnState === 0) {
+                return this.$store.state.SelectedCards.includes(this.currentCard) ? "isSelected" : "";
+            }
+
+            return this.$store.state.Room.JudgeSelection === this.index ? "isSelected" : "";
         },
         getSelectedPosition() {
-            return this.$store.state.SelectedCards.indexOf(this.currentCard) + 1
+            if (this.$store.state.Room.TurnState === 0) {
+                return this.$store.state.SelectedCards.indexOf(this.currentCard) + 1;
+            }
+
+            return this.$store.state.Room.JudgeSelection
         },
         showPosition() {
-            return !this.isPlayerJudge && this.$store.state.Room.CurrentBlackCard.AmtCardRequired > 1 && this.$store.state.SelectedCards.includes(this.index)
+            if (this.$store.state.Room.TurnState !== 0 || this.$store.state.User.IsPlayerJudge)
+                return false
+
+            return this.$store.state.Room.CurrentBlackCard.AmtCardRequired > 1 && this.$store.state.SelectedCards.includes(this.index)
         }
     },
     methods: {
         toggleSelection: function(card) {
-            this.$store.dispatch('select', card)
+            if (this.$store.state.Room.TurnState === 0) {
+                this.$store.dispatch('select', card)
+            } else if (this.$store.state.User.IsJudge && this.$store.state.Room.TurnState === 1) {
+                this.$store.dispatch('selectProposal', card)
+            }
         }
     }
 }

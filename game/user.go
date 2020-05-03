@@ -68,7 +68,7 @@ func SendCommand(u *model.User, command string, payload interface{}) error {
 
 // Kick disconnects a user from the server
 func Kick(u *model.User, reason string) {
-	fmt.Printf("- Disconnecting %v: %v", u.Username, reason)
+	Log(u.Room, u.Username+" > Disconnecting ("+reason+")")
 	QuitRoom(u, reason)
 }
 

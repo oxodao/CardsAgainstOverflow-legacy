@@ -17,6 +17,7 @@ export default new Vuex.Store({
             Participants: [],
             TurnState: 0,
             CurrentCountdown: "",
+            JudgeSelection: 0,
         },
         SelectedCards: [],
         ShowLogin: true,
@@ -54,6 +55,12 @@ export default new Vuex.Store({
                 }
                 state.User.Hand.isSelected = true;
             }
+        },
+        toggleProposalSelection: (state, payload) => {
+            state.SelectedCards = [payload];
+        },
+        setJudgeSelection: (state, payload) => {
+            state.Room.JudgeSelection = payload;
         }
     },
     actions: {
@@ -62,6 +69,10 @@ export default new Vuex.Store({
         },
         select: (ctx, payload) => {
             ctx.commit('toggleSelection', payload);
+            ctx.dispatch('sendSelection');
+        },
+        selectProposal: (ctx, payload) => {
+            ctx.commit('toggleProposalSelection', payload);
             ctx.dispatch('sendSelection');
         },
         sendSelection: (ctx) => {

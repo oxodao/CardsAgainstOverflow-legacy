@@ -25,6 +25,7 @@
                 <ul>
                     <PlayerName v-for="player in participants" :key="player.Username + player.Score +player.IsJudge+player.IsAdmin" v-bind:username="player.Username" v-bind:score="player.Score" v-bind:isAdmin="player.IsAdmin" v-bind:isJudge="player.IsJudge" />
                 </ul>
+                <h3>Tour: {{currTurn}} / {{maxTurn}}</h3>
             </nav>
             <div class="game">
                 <div id="question">
@@ -41,17 +42,19 @@
                 <template>
                     <div v-if="turnState === 0 && !isJudge" id="hack">
                         <div id="cards">
-                            <Card v-for="(card, index) in getCards" :key="card.ID+card.isSelected" v-bind:index="index" v-bind:isJudge="false" v-bind:currCard="card" />
+                            <Card v-for="(card, index) in getCards" :key="card.ID+card.isSelected" v-bind:isProposal="false" v-bind:index="index" v-bind:currCard="card" />
                         </div>
                     </div>
                     <div v-else-if="turnState === 0 && isJudge">
                         <h3>Les joueurs jouent!</h3>
                     </div>
                     <div v-else-if="turnState === 1">
-
+                        <div id="cards">
+                            <Card v-for="(card, index) in getProposals" :key="card.ID+card.isSelected" v-bind:isProposal="true" v-bind:index="index" v-bind:currCard="card" />
+                        </div>
                     </div>
                     <div v-else-if="turnState === 2">
-                        Le gagnant de la manche est USERNAME
+                        <h1 class="winner">{{ winner }}</h1>
                     </div>
                 </template>
             </div>
@@ -78,26 +81,30 @@ export default {
             hasPlayed: state => state.User.HasPlayed,
             currBlackCard: state => state.Room.CurrentBlackCard,
             room: state => state.Room.RoomID,
+            currTurn: state => state.Room.Turn,
+            maxTurn: state => state.Room.MaxTurn,
             participants: state => state.Room.Participants,
             isStarted: state => state.Room.Started,
             isJudge: state => state.User.IsJudge,
             turnState: state => state.Room.TurnState,
             isAdmin: state => state.User.IsAdmin,
+            winner: state => state.Room.Winner
         }),
         getCards() {
             return this.$store.state.User.Hand.filter((card) => card !== undefined && card !== null)
         },
-        getPropositions() {
-            return [] //this.$store.state.Judge.Answers
+        getProposals() {
+            return this.$store.state.Room.Answers
         },
         getCardText() {
-            if (!this.isJudge || !this.isJudgingTurn)
+            if (this.turnState === 0)
                 return [ 
                     {
                     "Question": this.currBlackCard.Text,
                     "Class": "",
                     }
                 ];
+
             let txt = this.currBlackCard.Text;
             let txtSplitted = txt.split(/(____)/)
             let curr = 0;
@@ -105,7 +112,7 @@ export default {
             txtSplitted.forEach(e => {
                 if (e === "____") {
                     values.push({
-                        Question: "ANSW" + curr, //this.selectedAnswers[this.selectedAnswersIndex].Cards[curr],
+                        Question: this.$store.state.Room.Answers[this.$store.state.Room.JudgeSelection].Cards[curr].Text,//"ANSW" + curr, //this.selectedAnswers[this.selectedAnswersIndex].Cards[curr],
                         Class: 'colored'
                     })
                     curr++
@@ -191,6 +198,10 @@ export default {
                     text-align: center;
                     text-decoration: underline;
                 }
+                
+                h3 {
+                    text-align: center;
+                }
 
                 ul {
                     flex: 1;
@@ -258,6 +269,22 @@ export default {
 
     .colored {
         color: #3EC480;
+    }
+
+    .winner {
+        height: 5em;
+        color: #3EC480;
+        text-transform: uppercase;
+        animation: glow 2s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+        from {
+            text-shadow: 0px 0px 15px #3EC480, 0 0 5px #4dbbc7;
+        }
+        to {
+            text-shadow: 0px 0px 5px #3EC480, 0 0 10px #4dbbc7;
+        }
     }
 
     @media (max-width: 666px) {
