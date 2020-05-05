@@ -47,11 +47,21 @@ func StartTurn(r *model.Room, gameStarting bool) {
 			return
 		}
 
-		Log(r, fmt.Sprintf("Turn %v / %v\n", r.Turn, r.MaxTurn))
+		Log(r, fmt.Sprintf("Turn %v / %v", r.Turn, r.MaxTurn))
 
 		// If the previous player in the list was judge we set it to the current one
 		wasJudge := false
 		for _, p := range r.Participants {
+			// We drop played cards
+			for _, c := range GetPlayedCards(p) {
+				for i, currCard := range p.Hand {
+					if c.ID == currCard.ID {
+						p.Hand[i] = nil
+					}
+				}
+			}
+
+			// Then we pick new ones
 			FillHand(p)
 
 			willBeJudge := false
@@ -402,6 +412,15 @@ func Broadcast(r *model.Room, cmdTxt string, arguments interface{}) {
 			fmt.Println("Failed to send command: ", err)
 		}
 	}
+}
+
+func GetPlayedCards(u *model.User) []*model.Card {
+	for _, p := range u.Room.Answers {
+		if p.User == u {
+			return p.Cards
+		}
+	}
+	return nil
 }
 
 // GetAmountCardRequired counts the amount of

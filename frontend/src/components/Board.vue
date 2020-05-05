@@ -270,6 +270,7 @@ export default {
 
         #validate {
             padding-bottom: 1em;
+            text-align: center;
 
             button {
                 padding: 1em;
