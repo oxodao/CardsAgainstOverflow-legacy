@@ -29,6 +29,7 @@ func Receive(u *model.User) {
 	}
 }
 
+// ExecuteCommand parses and execute a command sent by a user
 func ExecuteCommand(u *model.User, cmd model.Command) {
 	switch cmd.Command {
 	case "PING":
@@ -37,19 +38,32 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 
 	case "START_GAME":
 		if u.IsAdmin {
-			StartGame(u.Room, []int{})
+			StartGame(u.Room)
 		}
 		break
 
-	case "SEND_ANSWERS":
+	case "SEND_SELECTION":
 		ReceiveAnswers(u, cmd.Arguments)
 		break
+
+	case "SKIP_COUNTDOWN":
+		if u.IsJudge {
+			u.Room.CurrentCountdown = 0
+		}
+		break
+
+	case "SET_SETTINGS":
+		if u.IsAdmin {
+			SetSettings(u, cmd.Arguments)
+		}
+		break;
 
 	default:
 		fmt.Printf("Unhandled command from %v: %v\n", u.Username, cmd.Command)
 	}
 }
 
+// SendCommand sends a command to a user
 func SendCommand(u *model.User, command string, payload interface{}) error {
 	content, err := json.Marshal(payload)
 	if err != nil {
@@ -64,11 +78,13 @@ func SendCommand(u *model.User, command string, payload interface{}) error {
 	return err
 }
 
+// Kick disconnects a user from the server
 func Kick(u *model.User, reason string) {
-	fmt.Printf("- Disconnecting %v: %v", u.Username, reason)
+	Log(u.Room, u.Username+" > Disconnecting ("+reason+")")
 	QuitRoom(u, reason)
 }
 
+// FillHand refill the user's hand after a turn
 func FillHand(u *model.User) {
 	for i := range u.Hand {
 		if u.Hand[i] == nil {

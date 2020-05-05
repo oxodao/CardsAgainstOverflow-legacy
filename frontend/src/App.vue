@@ -17,7 +17,7 @@ export default {
     Board
   },
   computed: mapState({
-    ShowModal: state => state.CurrentState.ShowLogin
+    ShowModal: state => state.ShowLogin
   })
 }
 </script>

@@ -40,10 +40,6 @@ export function parseMessage(store, toasted, msg) {
             store.commit('connected', cmd.Arguments)
             break;
 
-        case 'DISCONNECTED':
-            console.log("Add to logs")
-            break;
-
         case 'SET_GAMESTATE':
             store.commit('setState', cmd.Arguments)
             break;
@@ -52,16 +48,16 @@ export function parseMessage(store, toasted, msg) {
             store.commit('setPlayerList', cmd.Arguments)
             break;
 
-        case 'GAME_STARTED':
-            store.commit('startGame', cmd.Arguments)
+        case 'GOT_SETTINGS':
+            store.commit('gotSettings', cmd.Arguments);
             break;
 
-        case 'UPDATE_CARDS':
-            store.commit('updateCards', cmd.Arguments)
+        case 'COUNTDOWN':
+            store.commit('setCountdown', cmd.Arguments)
             break;
 
-        case 'ANSWERS_LIST':
-            store.commit('addToAnswersList', cmd.Arguments)
+        case 'JUDGE_SELECTION':
+            store.commit('setJudgeSelection', cmd.Arguments)
             break;
 
         default:

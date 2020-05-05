@@ -1,6 +1,7 @@
 package dal
 
 import (
+	"errors"
 	"github.com/jmoiron/sqlx"
 	"github.com/oxodao/cardsagainstoverflow/model"
 )
@@ -10,6 +11,43 @@ func FetchAllDecks() ([]*model.Deck, error) {
 
 	var decks []*model.Deck
 	rows, err := DB.Queryx("SELECT ID, NAME FROM DECK")
+	if err != nil {
+		return decks, err
+	}
+
+	for rows.Next() {
+		deck := &model.Deck{}
+		rows.StructScan(&deck)
+
+		decks = append(decks, deck)
+	}
+
+	return decks, nil
+}
+
+func FetchSelectedDecks(selected []int64) ([]*model.Deck, error) {
+	if len(selected) == 0 {
+		return []*model.Deck{}, errors.New("can't use empty deck set")
+	}
+
+	DB := GetDatabase()
+
+	var decks []*model.Deck
+
+	rq := "SELECT ID, NAME FROM DECK WHERE ID IN ("
+	args := []interface{}{}
+	for i, v := range selected {
+		rq = rq + "?"
+		args = append(args, v)
+
+		if i != len(selected)-1 {
+			rq = rq + ", "
+		}
+	}
+
+	rq = rq + ");"
+
+	rows, err := DB.Queryx(rq, args...)
 	if err != nil {
 		return decks, err
 	}

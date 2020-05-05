@@ -4,31 +4,20 @@ import (
 	"github.com/oxodao/cardsagainstoverflow/model"
 )
 
-func DTOPlayerList(users []*model.User) []*model.User {
-	usersCleaned := []*model.User{}
-
-	for i := range users {
-		usersCleaned = append(usersCleaned, DTOUser(users[i]))
-	}
-
-	return usersCleaned
-}
-
-func DTOUser(u *model.User) *model.User {
+// Participant is a DTO for other users (Not the current player)
+func Participant(u *model.User) *model.User {
 	var user model.User = *u
-	user.Room = nil
+	u.Hand = [7]*model.Card{}
 	return &user
 }
 
-type modelConnection struct {
-	User *model.User
-	Room string
-}
+// Participants is a DTO for other users (Not the current player)
+func Participants(users []*model.User) []*model.User {
+	usersCopied := []*model.User{}
 
-func DTOConnection(u *model.User) modelConnection {
-	user := DTOUser(u)
-	return modelConnection{
-		User: user,
-		Room: u.Room.RoomID,
+	for _, participant := range users {
+		usersCopied = append(usersCopied, Participant(participant))
 	}
+
+	return usersCopied
 }

@@ -5,156 +5,154 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
-        CurrentState: {
-            ShowLogin: true,
-            SendAnswersAllowed: false,
-        },
         User: {
-            Username: '',
-            Color: '',
-            Hand: [],
-            Answer: [],
-            HasPlayed: false,
-            IsJudge: false,
+            Username: "",
             IsAdmin: false,
+            IsJudge: false,
+            Hand: [],
         },
         Room: {
-            ID: '',
-            BlackCard: '',
-            isStarted: false,
-            Participants: []
+            IsStarted: false,
+            RoomID: "",
+            Participants: [],
+            TurnState: 0,
+            CurrentCountdown: "",
+            JudgeSelection: 0,
+            Turn: 0,
+            MaxTurn: 30,
+            ZenMode: false,
+            DefaultCountdown: 80,
+            AvailableDecks: [],
         },
-        Judge: {
-            Answers: [],
-            SelectedAnswer: -1
-        },
-        Websocket: null
+        SelectedCards: [],
+        ShowLogin: true,
+        Websocket: null,
     },
     mutations: {
         setWebsocket: (state, payload) => {
             state.Websocket = payload;
         },
-        connected: (state, payload) => {
-            state.CurrentState.ShowLogin = false;
-
-            state.User.Username = payload.User.Username;
-            state.Room.ID = payload.Room;
-            state.User.IsAdmin = payload.User.IsAdmin;
-            state.User.IsJudge = payload.User.IsJudge;
-        },
-        startGame: (state) => {
-            state.Room.Started = true
-        },
         setPlayerList: (state, payload) => {
             state.Room.Participants = payload;
-            payload.forEach(e => {
-                if (e.Username == state.User.Username) {
-                    state.User.IsAdmin = e.IsAdmin
-                    state.User.IsJudge = e.IsJudge
-                }
-            });
         },
         setState: (state, payload) => {
-            console.log(payload)
-            state = payload
+            let ws = state.Websocket;
+
+            state.User = payload.User;
+            state.Room = payload.Room;
+
+            state.Websocket = ws;
+            state.ShowLogin = false;
+            state.SelectedCards = [ ];
         },
-        updateCards: (state, payload) => {
-            state.Room.BlackCard = payload.BlackCard
-            state.Judge.Answers = []
-            state.Judge.SelectedAnswer = -1
-
-            // This array is a fixed-sized array
-            // This let us remove card and put them back without causing issues
-            state.User.Answer = new Array(payload.BlackCard.AmtCardRequired)
-            //Object.seal(state.User.Answer)
-
-            state.User.Hand = payload.Hand.map(a => ({ ...a, answerPosition: -1 }))
-            state.User.HasPlayed = false;
+        setCountdown: (state, payload) => {
+            Vue.set(state.Room, 'CurrentCountdown', payload);
         },
         toggleSelection: (state, payload) => {
-            if (state.User.HasPlayed) {
-                return
-            }
-
-            if (payload.answerPosition == -1) {
-                for (let i = 0; i < state.User.Answer.length; i++) {
-                    // We find the first empty place
-                    if (state.User.Answer[i] === undefined || state.User.Answer[i] === null) {
-                        state.User.Answer[i] = payload;
-                        payload.answerPosition = i
-                        break
-                    }
+            if (state.SelectedCards.includes(payload)) {
+                Vue.set(state.SelectedCards, state.SelectedCards.indexOf(payload), -1);
+                state.User.Hand.isSelected = false;
+            } else if (state.Room.CurrentBlackCard.AmtCardRequired > (state.SelectedCards.filter(e => e !== -1).length)) {
+                if (state.SelectedCards.includes(-1)) {
+                    Vue.set(state.SelectedCards, state.SelectedCards.indexOf(-1), payload);
+                } else {
+                    state.SelectedCards.push(payload);
                 }
-            } else {
-                for (let i = 0; i < state.User.Answer.length; i++) {
-                    if (state.User.Answer[i] !== undefined && state.User.Answer[i] !== null && state.User.Answer[i].ID == payload.ID) {
-                        state.User.Answer[i] = null;
-                        payload.answerPosition = -1
-                    }
+                state.User.Hand.isSelected = true;
+            }
+        },
+        toggleProposalSelection: (state, payload) => {
+            state.SelectedCards = [payload];
+        },
+        setJudgeSelection: (state, payload) => {
+            state.Room.JudgeSelection = payload;
+        },
+
+        /**
+         * Settings mutations
+         */
+        gotSettings: (state, payload) => {
+            state.Room.MaxTurn = payload.MaxTurn;
+            state.Room.ZenMode = payload.ZenMode;
+            state.Room.DefaultCountdown = payload.DefaultCountdown;
+
+            for(let i = 0; i < state.Room.AvailableDecks.length; i++) {
+                let e = state.Room.AvailableDecks[i]
+                if (payload.SelectedDecks.includes(e.ID)) {
+                    Vue.set(state.Room.AvailableDecks[i], 'IsSelected', true)
+                } else {
+                    Vue.set(state.Room.AvailableDecks[i], 'IsSelected', false)
                 }
             }
-
-            state.CurrentState.SendAnswersAllowed= state.User.Answer.filter(e => e !== undefined && e !== null).length == state.Room.BlackCard.AmtCardRequired;
         },
-        toggleAnswerSelection: (state, payload) => {
-            if (state.User.HasPlayed)
-                return
+        updateTurns: (state, payload) => {
+            state.Room.MaxTurn = parseInt(payload) ?? 30;
+        },
+        updateZenMode: (state, payload) => {
+            state.Room.ZenMode = payload;
+        },
+        updateCountdown: (state, payload) => {
+            state.Room.DefaultCountdown = parseInt(payload) ?? 80;
+        },
+        updateSelectedDecks: (state, payload) => {
+            payload.ID = parseInt(payload.ID);
 
-            let selected = state.Judge.SelectedAnswer;
-
-            if (selected !== -1) {
-                state.Judge.Answers[selected].IsSelected = false;
-                state.Judge.SelectedAnswer = -1;
+            for (let i = 0; i < state.Room.AvailableDecks.length; i++) {
+                if (state.Room.AvailableDecks[i].ID === payload.ID) {
+                    Vue.set(state.Room.AvailableDecks, i, { ...state.Room.AvailableDecks[i], IsSelected: payload.Selected })
+                }
             }
-
-            if (payload.ID !== selected) {
-                state.Judge.Answers.forEach((e, i) => {
-                    if (e.ID == payload.ID) {
-                        state.Judge.SelectedAnswer = i;
-                        state.Judge.Answers[i].IsSelected = true;
-                    }
-                })
-            }
-        },
-        addToAnswersList: (state, payload) => {
-            Vue.set(state.Judge.Answers, state.Judge.Answers.length, {
-                Text: "Proposition #" + (state.Judge.Answers.length+1),
-                Cards: payload.map(e => e.Text),
-                ID: payload[0].ID,
-                IsSelected: false,
-            });
-        },
-        played: (state) => {
-            state.User.HasPlayed = true
         }
     },
     actions: {
         startGame(ctx) {
             ctx.state.Websocket.send(JSON.stringify({ Command: "START_GAME", Arguments: "{}" }))
         },
-        answer: (ctx) => {
+        sendSettings(ctx) {
+            let settings = {
+                SelectedDecks: ctx.state.Room.AvailableDecks.filter(e => e.IsSelected).map(e => e.ID),
+                MaxTurn: ctx.state.Room.MaxTurn,
+                ZenMode: ctx.state.Room.ZenMode,
+                DefaultCountdown: ctx.state.Room.DefaultCountdown,
+            };
+
+            ctx.state.Websocket.send(JSON.stringify({
+                Command: 'SET_SETTINGS',
+                Arguments: JSON.stringify(settings)
+            }))
+        },
+        select: (ctx, payload) => {
+            ctx.commit('toggleSelection', payload);
+            ctx.dispatch('sendSelection');
+        },
+        selectProposal: (ctx, payload) => {
+            ctx.commit('toggleProposalSelection', payload);
+            ctx.dispatch('sendSelection');
+        },
+        sendSelection: (ctx) => {
             if (ctx.state.User.IsJudge) {
                 ctx.state.Websocket.send(JSON.stringify({
-                    Command: 'SEND_ANSWERS',
-                    Arguments: JSON.stringify([
-                        ctx.state.Judge.Answers[ctx.state.Judge.SelectedAnswer]
-                    ])
+                    Command: 'SEND_SELECTION',
+                    Arguments: JSON.stringify(ctx.state.SelectedCards),
                 }))
             } else {
+                console.log("Sending selection")
                 ctx.state.Websocket.send(JSON.stringify({
-                    Command: 'SEND_ANSWERS',
-                    Arguments: JSON.stringify(ctx.state.User.Answer.map(e => ({
-                            ID: e.ID,
-                            Text: e.Text,
-                            IsBlackCard: e.IsBlackCard
-                        })))
+                    Command: 'SEND_SELECTION',
+                    Arguments: JSON.stringify(ctx.state.SelectedCards),
                 }))
             }
-            ctx.commit('played')
         },
+        skipCountdown: (ctx) => {
+            ctx.state.Websocket.send(JSON.stringify({
+                Command: 'SKIP_COUNTDOWN',
+                Arguments: ''
+            }))
+        }
     },
     getters: {
         IsPlayerJudge: state => state.User.IsJudge,
-        IsPlayerAdmin: state => state.User.IsAdmin
+        IsPlayerAdmin: state => state.User.IsAdmin,
+        IsPlaying: state => (state.Room.Turn <= state.Room.MaxTurn),
     }
 })

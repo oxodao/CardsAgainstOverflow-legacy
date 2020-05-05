@@ -5,4 +5,5 @@ type Deck struct {
 	Title      string  `json:"Title" db:"NAME"`
 	Cards      []*Card `json:"Cards"`
 	BlackCards []*Card `json:"BlackCards"`
+	IsSelected bool    `json:"IsSelected" db:"-"`
 }

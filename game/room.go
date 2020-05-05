@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
 
 	"github.com/oxodao/cardsagainstoverflow/dal"
@@ -11,82 +12,118 @@ import (
 	"github.com/oxodao/cardsagainstoverflow/utils"
 )
 
+// Rooms is the list of all rooms on the server
 var Rooms []*model.Room = make([]*model.Room, 0)
 
-func StartTurn(r *model.Room) {
-	fmt.Println("Turn is over. Let's go for another one")
+const DefaultCountdown int = 20
+
+// StartTurn starts a turn
+func StartTurn(r *model.Room, gameStarting bool) {
 	r.CurrentBlackCard = r.PickBlackCard()
 
-	// If the previous player in the list was judge we set it to the current one
-	wasJudge := false
-	for _, p := range r.Participants {
-		FillHand(p)
-
-		willBeJudge := false
-		if wasJudge {
-			willBeJudge = true
+	if gameStarting {
+		Log(r, "Starting game!")
+		for i := range r.Participants {
+			FillHand(r.Participants[i])
 		}
-		wasJudge = p.IsJudge
-		p.IsJudge = willBeJudge
+	} else {
+		r.Turn = r.Turn + 1
 
-		fmt.Printf("Player %v isJudge: %v\n", p.Username, p.IsJudge)
+		// If the game has ended, no need to do another turn
+		if r.Turn > r.MaxTurn && !r.ZenMode {
+			// Sending the last gamestate before concluding the game
+			gs := dto.GameState(r)
+
+			for _, player := range r.Participants {
+				gs.SetUser(player)
+				err := SendCommand(player, model.CommandSetGamestate, gs)
+				if err != nil {
+					fmt.Println("Err: ", err)
+				}
+			}
+
+			Log(r, "Game over!")
+
+			return
+		}
+
+		Log(r, fmt.Sprintf("Turn %v / %v\n", r.Turn, r.MaxTurn))
+
+		// If the previous player in the list was judge we set it to the current one
+		wasJudge := false
+		for _, p := range r.Participants {
+			FillHand(p)
+
+			willBeJudge := false
+			if wasJudge {
+				willBeJudge = true
+			}
+			wasJudge = p.IsJudge
+			p.IsJudge = willBeJudge
+			p.SelectedCards = []int{}
+		}
+
+		// If the last player was judge, we set the first player as
+		if wasJudge {
+			r.Participants[0].IsJudge = true
+		}
 	}
-
-	// If the last player was judge, we set the first player as
-	if wasJudge {
-		r.Participants[0].IsJudge = true
-		fmt.Println("First player is now judge")
-	}
-
-	SendPlayerList(r)
 
 	r.SelectedCards = []*model.Card{}
-	SendCards(r)
+	r.CurrentCountdown = r.DefaultCountdown
+
+	r.Answers = []*model.Proposal{}
+	r.Winner = ""
+	r.WinningAnswer = nil
+
+	r.TurnState = model.TurnStatePlayer
+
+	// Creating a gamestate
+	gs := dto.GameState(r)
 
 	for _, player := range r.Participants {
-		err := SendCommand(player, model.CommandSetGamestate, dto.Gamestate(player))
+		gs.SetUser(player)
+		err := SendCommand(player, model.CommandSetGamestate, gs)
 		if err != nil {
 			fmt.Println("Err: ", err)
 		}
 	}
-
-	r.Answers = make(map[*model.User][]*model.Card, len(r.Participants))
 }
 
-func StartGame(r *model.Room, decks []int) {
+// StartGame starts the game
+func StartGame(r *model.Room) {
 	if r.IsReady() {
 		r.Started = true
 		r.Participants[0].IsJudge = true
 
-		RoomSelectDecks(r, decks)
-
-		r.CurrentBlackCard = r.PickBlackCard()
-
-		for i := range r.Participants {
-			FillHand(r.Participants[i])
+		if RoomSelectDecks(r) != nil {
+			Log(r, "Can't fetch decks!")
 		}
 
-		r.SelectedCards = []*model.Card{}
-
-		SendCards(r)
-		Broadcast(r, model.CommandStarted, struct{}{})
-		SendPlayerList(r)
-
-		r.Answers = make(map[*model.User][]*model.Card, len(r.Participants))
+		StartTurn(r, true)
+		RunCountdown(r, CountdownProcess)
 	}
 }
 
-func RoomSelectDecks(r *model.Room, selectedDecks []int) error {
+func RoomSelectDecks(r *model.Room) error {
 	var err error
 	var decks []*model.Deck
 
-	if len(selectedDecks) == 0 {
-		decks, err = dal.FetchAllDecks() // @TODO: use only what players want
-		if err != nil {                  // Use selected decks. Fallback on FatchAllDecks only when no deck are selected
-			return err
+	selectedDecks := []int64{}
+	for _, d := range r.AvailableDecks {
+		if d.IsSelected {
+			selectedDecks = append(selectedDecks, d.ID)
 		}
-	} else {
+	}
 
+	if len(selectedDecks) == 0 {
+		decks, err = dal.FetchAllDecks()
+	} else {
+		decks, err = dal.FetchSelectedDecks(selectedDecks)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	err = dal.FetchCardsForDecks(decks)
@@ -110,18 +147,23 @@ func RoomSelectDecks(r *model.Room, selectedDecks []int) error {
 	return nil
 }
 
+// Join is triggered when someone joins the room
 func Join(u *model.User, r *model.Room) {
 	u.Room = r
 	r.Participants = append(r.Participants, u)
 
-	SendPlayerList(r)
 	if r.Started {
 		FillHand(u)
-		SendCardsToUser(u)
 	}
+
+	Log(r, u.Username+" has joined the room.")
+
+	SendPlayerList(r)
 }
 
 func QuitRoom(u *model.User, reason string) {
+	Log(u.Room, u.Username+" has left the room.")
+
 	// Setting the next player as the current player
 	// If the user was admin, setting the next player as admin
 	index := -1
@@ -180,7 +222,7 @@ func QuitRoom(u *model.User, reason string) {
 		}
 
 		if index >= 0 {
-			fmt.Println("Removing room #" + room.RoomID)
+			Log(room, "Removing the room, no one is inside.")
 			Rooms = append(Rooms[:index], Rooms[index+1:]...)
 		}
 	}
@@ -190,100 +232,169 @@ func QuitRoom(u *model.User, reason string) {
 	SendPlayerList(room)
 }
 
-func SendPlayerList(r *model.Room) {
-	Broadcast(r, model.CommandPlayerList, dto.DTOPlayerList(r.Participants))
-}
-
-func SendCards(r *model.Room) {
-	for i := range r.Participants {
-		user := r.Participants[i]
-		SendCommand(user, model.CommandUpdateCards, struct {
-			Hand      [7]*model.Card
-			BlackCard *model.Card
-		}{
-			Hand:      user.Hand,
-			BlackCard: r.CurrentBlackCard,
-		})
-	}
-}
-
-func ReceiveAnswers(u *model.User, argsStr string) {
-	args := []model.Card{}
-	err := json.Unmarshal([]byte(argsStr), &args)
-	if err != nil {
-		fmt.Println("Bad answers format", err)
+// ReceiveAnswers set the answer for the user
+func ReceiveAnswers(u *model.User, argsString string) {
+	if u.Room.Turn > u.Room.MaxTurn {
 		return
 	}
 
-	cardsPointers := []*model.Card{}
-	for i := range args {
-		cardsPointers = append(cardsPointers, &args[i])
+	args := []int{}
+	err := json.Unmarshal([]byte(argsString), &args)
+	if err != nil {
+		Log(u.Room, u.Username+" > Can't parse the received cards!")
+		return
 	}
 
 	if u.IsJudge {
-		r := u.Room
-		winner := FindWinnerFromCard(r, cardsPointers[0])
-		// If it is not...
-		// Oh dear we're in trouble
-		if winner != nil {
-			winner.Score = winner.Score + 1
+		if u.Room.TurnState == model.TurnStateJudge {
+			// The judge has given his verdict!
+			winnerCard := args[0]
+			if len(u.Room.Answers) >= winnerCard {
+				u.Room.WinningAnswer = u.Room.Answers[winnerCard]
+			}
 
-			// We remove used cards from player hands
+			Broadcast(u.Room, model.CommandJudgeSelection, winnerCard)
+		}
+	} else {
+		if u.Room.TurnState == model.TurnStatePlayer {
+			// We can process the request
+			u.SelectedCards = args
 
-			// For each user we have a set of answers
-			// @TODO: Something is wrong here, sometimes it panic!
-			// In the filter function, some pointer is nil
-			for u, a := range r.Answers {
-				// For each answer
-				for _, currAnswer := range a {
-					u.Hand = utils.FilterCard(u.Hand, func(cc *model.Card) bool {
-						return currAnswer.ID != cc.ID
+			// We set the final countdown tudoduto tudodutoto
+			canDropCounter := true
+			for _, p := range u.Room.Participants {
+				if p.IsJudge {
+					continue
+				}
+
+				amtSelect := 0
+				for _, c := range p.SelectedCards {
+					if c != -1 {
+						amtSelect = amtSelect + 1
+					}
+				}
+
+				if amtSelect < u.Room.CurrentBlackCard.AmtCardRequired {
+					canDropCounter = false
+				}
+			}
+
+			if canDropCounter && u.Room.CurrentCountdown > 10 {
+				u.Room.CurrentCountdown = 10
+			}
+		}
+	}
+}
+
+// CountdownProcess is a function called when a countdown reach 0
+func CountdownProcess(r *model.Room) {
+	// We switch to the next game state
+	if r.TurnState == model.TurnStatePlayer || r.TurnState == model.TurnStateJudge {
+		if r.TurnState == model.TurnStatePlayer {
+			r.TurnState = model.TurnStateJudge
+			r.CurrentCountdown = r.DefaultCountdown
+
+			for _, p := range r.Participants {
+				// We don't take the judge
+				if p.IsJudge {
+					continue
+				}
+
+				if utils.HasPlayerPlayed(r.CurrentBlackCard, p.SelectedCards) {
+					cards := []*model.Card{}
+					if p.SelectedCards != nil {
+						for _, a := range p.SelectedCards {
+							cards = append(cards, p.Hand[a])
+						}
+					}
+
+					r.Answers = append(r.Answers, &model.Proposal{
+						Cards: cards,
+						User:  p,
 					})
 				}
 			}
 
-			// We clear the answers received
-			r.Answers = make(map[*model.User][]*model.Card, 0)
+			if len(r.Answers) == 0 {
+				StartTurn(r, false)
+				return
+			}
 
-			// Start a new turn
-			// No need to broadcast the winner (Client can simply diff from last state)
-			// No need to broadcast playerlist because starting a turn sets the judge thus sending the list
-			StartTurn(r)
+			utils.Shuffle(r.Answers)
+
+			for i, c := range r.Answers {
+				c.ID = i
+			}
+		} else if r.TurnState == model.TurnStateJudge {
+			r.TurnState = model.TurnStateShowWinner
+			r.CurrentCountdown = 6
+
+			if r.WinningAnswer == nil {
+				// The judge has not answered so we'll give it to a random player
+				size := len(r.Answers) - 1
+				selected := 0
+
+				// If there are multiple players
+				if size > 0 {
+					selected = rand.Intn(size)
+				}
+
+				r.WinningAnswer = r.Answers[selected]
+			}
+
+			r.Winner = r.WinningAnswer.User.Username
+			r.WinningAnswer.User.Score = r.WinningAnswer.User.Score + 1
 		}
-	} else {
-		u.Room.Answers[u] = cardsPointers
-		for i := range u.Room.Participants {
-			judge := u.Room.Participants[i]
-			if judge.IsJudge {
-				SendCommand(judge, model.CommandSendAnswersList, cardsPointers)
-				break
+
+		// Send GameState
+		gs := dto.GameState(r)
+
+		for _, player := range r.Participants {
+			gs.SetUser(player)
+			err := SendCommand(player, model.CommandSetGamestate, gs)
+			if err != nil {
+				fmt.Println("Err: ", err)
 			}
 		}
-	}
-}
 
-func FindWinnerFromCard(r *model.Room, c *model.Card) *model.User {
-	for k := range r.Answers {
-		for j := range r.Answers[k] {
-			if r.Answers[k][j].ID == c.ID {
-				return k
-			}
-		}
+	} else if r.TurnState == model.TurnStateShowWinner {
+		StartTurn(r, false)
 	}
 
-	return nil
 }
 
-func SendCardsToUser(user *model.User) {
-	SendCommand(user, model.CommandUpdateCards, struct {
-		Hand      [7]*model.Card
-		BlackCard *model.Card
-	}{
-		Hand:      user.Hand,
-		BlackCard: user.Room.CurrentBlackCard,
-	})
+type gotSettings struct {
+	SelectedDecks []int64
+	MaxTurn int
+	ZenMode bool
+	DefaultCountdown int
 }
 
+func SetSettings(u *model.User, argStr string) {
+	settings := gotSettings{}
+	err := json.Unmarshal([]byte(argStr), &settings)
+	if err != nil {
+		Log(u.Room, fmt.Sprint("Can't parse settings: %v", err))
+		return
+	}
+
+	for _, v := range u.Room.AvailableDecks {
+		v.IsSelected = model.Contains(settings.SelectedDecks, v.ID)
+	}
+	u.Room.MaxTurn = settings.MaxTurn
+	u.Room.ZenMode = settings.ZenMode
+	u.Room.DefaultCountdown = settings.DefaultCountdown
+
+	Broadcast(u.Room, model.CommandGotSettings, settings)
+
+}
+
+// SendPlayerList broadcast the playerlist to everyone in a room
+func SendPlayerList(r *model.Room) {
+	Broadcast(r, model.CommandPlayerList, dto.Participants(r.Participants))
+}
+
+// Broadcast sends a command to all users in a room
 func Broadcast(r *model.Room, cmdTxt string, arguments interface{}) {
 	for i := range r.Participants {
 		err := SendCommand(r.Participants[i], cmdTxt, arguments)
@@ -293,6 +404,7 @@ func Broadcast(r *model.Room, cmdTxt string, arguments interface{}) {
 	}
 }
 
+// GetAmountCardRequired counts the amount of
 func GetAmountCardRequired(c *model.Card) int {
 	return strings.Count(c.Text, "____")
 }

@@ -1,13 +1,13 @@
 <template>
-    <div class="card" @click="toggleSelection(currCard)" v-bind:class="getClassnameIsSelected">
-        <p>{{currCard.Text}}</p>
+    <div class="card" @click="toggleSelection(index)" v-bind:class="getClassnameIsSelected">
+        <p>{{ !isProposal ? currCard.Text : "Proposition #" + (index+1)}}</p>
         <div class="branding">
             <span>Cards</span>
             <span>Against</span>
             <span>Overflow</span>
         </div>
-        <div v-if="showPosition" id="position">
-            {{ getSelectedPosition+1 }}
+        <div v-if="showPosition && !isProposal" id="position">
+            {{ getSelectedPosition }}
         </div>
     </div>
 </template>
@@ -17,37 +17,43 @@ export default {
     name: 'Card',
     props: [
         'currCard',
-        'isJudge'
+        'isProposal',
+        'index',
     ],
     data: function() {
         return {
-            currentCard: this.currCard,
-            isPlayerJudge: this.isJudge
+            currentCard: this.index,
         }
     },
     computed: {
         getClassnameIsSelected() {
-            if (this.isPlayerJudge)
-                return this.currentCard.IsSelected ? "isSelected" : ""
+            if (this.$store.state.Room.TurnState === 0) {
+                return this.$store.state.SelectedCards.includes(this.currentCard) ? "isSelected" : "";
+            }
 
-            return this.currentCard.answerPosition !== -1 ? "isSelected" : ""
-        },
-        getTextCard() {
-            return ""
+            return this.$store.state.Room.JudgeSelection === this.index ? "isSelected" : "";
         },
         getSelectedPosition() {
-            return this.currentCard.answerPosition
+            if (this.$store.state.Room.TurnState === 0) {
+                return this.$store.state.SelectedCards.indexOf(this.currentCard) + 1;
+            }
+
+            return this.$store.state.Room.JudgeSelection
         },
         showPosition() {
-            return this.currentCard.answerPosition !== -1 && !this.isPlayerJudge && this.$store.state.Room.BlackCard.AmtCardRequired> 1 
+            if (this.$store.state.Room.TurnState !== 0 || this.$store.state.User.IsPlayerJudge)
+                return false
+
+            return this.$store.state.Room.CurrentBlackCard.AmtCardRequired > 1 && this.$store.state.SelectedCards.includes(this.index)
         }
     },
     methods: {
         toggleSelection: function(card) {
-            if (this.$store.getters.IsPlayerJudge)
-                this.$store.commit('toggleAnswerSelection', card)
-            else
-                this.$store.commit('toggleSelection', card)
+            if (this.$store.state.Room.TurnState === 0) {
+                this.$store.dispatch('select', card)
+            } else if (this.$store.state.User.IsJudge && this.$store.state.Room.TurnState === 1) {
+                this.$store.dispatch('selectProposal', card)
+            }
         }
     }
 }

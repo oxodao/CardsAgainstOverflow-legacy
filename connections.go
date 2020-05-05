@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"github.com/oxodao/cardsagainstoverflow/dal"
 	"net/url"
 	"strings"
 	"time"
@@ -34,7 +34,9 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 
 	if client.Room == nil && len(params["room"][0]) == 0 {
 		r := GenerateNewRoom(client)
+
 		client.IsAdmin = true
+
 		game.Join(client, r)
 		game.Rooms = append(game.Rooms, r)
 	} else if (client.Room) == nil {
@@ -45,8 +47,10 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 
 	game.Users = append(game.Users, *client)
 
-	fmt.Printf("User connected! [Name: %v; Room: %v]\n", client.Username, client.Room.RoomID)
-	game.SendCommand(client, model.CommandConnected, dto.DTOConnection(client))
+	gs := dto.GameState(client.Room)
+	gs.SetUser(client)
+
+	game.SendCommand(client, model.CommandSetGamestate, gs)
 
 	go game.Receive(client)
 
@@ -68,16 +72,21 @@ func KickIfExists(client *model.User) bool {
 	return false
 }
 
+// GenerateNewRoom create a room and set the default parameters
 func GenerateNewRoom(client *model.User) *model.Room {
 	newID, _ := gonanoid.Generate("abcdefghijklmnopqrstuvwxyz0123456789", 6)
+	decks, _ := dal.FetchAllDecks()
 	r := &model.Room{
 		RoomID:       strings.ToUpper(newID),
 		Participants: []*model.User{},
 		Started:      false,
+		MaxTurn:      10,
+		AvailableDecks: decks,
+		DefaultCountdown: 80,
 	}
 
 	game.Rooms = append(game.Rooms, r)
-	fmt.Printf("Creating a new room named %v\n", r.RoomID)
+	game.Log(r, "Creating the room.")
 
 	return r
 }
