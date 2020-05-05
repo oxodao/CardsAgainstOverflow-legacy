@@ -5,13 +5,6 @@
             <div class="gameinfo">
                 <span>Code salle: {{room}}</span>
                 <div class="buttons">
-                    <template v-if="isAdmin && isStarted">
-                        <button>Changer la partie</button>
-                    </template>
-                    <template v-else-if="isAdmin">
-                        <button v-if="isReady" @click="startGame">Démarrer</button>
-                        <button>Paramètres</button>
-                    </template>
                     <button @click="exit">Quitter</button>
                 </div>
             </div>
@@ -19,28 +12,31 @@
         <Countdown />
         <div class="game-wrapper">
             <nav>
-                <img src="../assets/logo.png"/>
+                <img src="../assets/logo.png" alt="Logo"/>
 
                 <h2>Joueurs</h2>
                 <ul>
                     <PlayerName v-for="player in participants" :key="player.Username + player.Score +player.IsJudge+player.IsAdmin" v-bind:username="player.Username" v-bind:score="player.Score" v-bind:isAdmin="player.IsAdmin" v-bind:isJudge="player.IsJudge" />
                 </ul>
-                <h3>Tour: {{currTurn}} / {{maxTurn}}</h3>
+
+                <h3 v-if="isStarted && currTurn <= maxTurn && !zenMode">Tour: {{currTurn}} / {{maxTurn}}</h3>
+                <h3 v-else-if="isStarted && currTurn <= maxTurn">Tour: {{currTurn}}</h3>
             </nav>
-            <div class="game">
+            <div v-if="isPlaying" class="game">
                 <div id="question">
-                    <h1 v-if="currBlackCard !== undefined && currBlackCard !== null" id="question">
+                    <h1 v-if="currBlackCard !== undefined && currBlackCard !== null" id="questionText">
                         <span v-for="txt in getCardText" v-bind:key="txt.Question" v-bind:class="txt.Class">{{txt.Question}}</span>
                     </h1>
-                    <h1 v-else-if="isStarted" id="question">Attente de nouveaux joueurs</h1>
+                    <h1 v-else-if="isStarted" id="questionText">Attente de nouveaux joueurs</h1>
                     {{/* For some reasons the v-else doesn't work here... */ }}
-                    <h1 v-if="!currBlackCard && !isStarted " id="question">
+                    <h1 v-if="!currBlackCard && !isStarted " id="questionText">
                         En attente de joueurs...
                         <template v-if="isReady"> <br /> La partie est prête </template>
                     </h1>
                 </div>
                 <template>
-                    <div v-if="turnState === 0 && !isJudge" id="hack">
+                    <RoomSettings v-if="!isStarted"/>
+                    <div v-else-if="turnState === 0 && !isJudge" id="hack">
                         <div id="cards">
                             <Card v-for="(card, index) in getCards" :key="card.ID+card.isSelected" v-bind:isProposal="false" v-bind:index="index" v-bind:currCard="card" />
                         </div>
@@ -52,11 +48,17 @@
                         <div id="cards">
                             <Card v-for="(card, index) in getProposals" :key="card.ID+card.isSelected" v-bind:isProposal="true" v-bind:index="index" v-bind:currCard="card" />
                         </div>
+                        <div v-if="isJudge" id="validate">
+                            <button @click="skipCountdown">Voter !</button>
+                        </div>
                     </div>
                     <div v-else-if="turnState === 2">
                         <h1 class="winner">{{ winner }}</h1>
                     </div>
                 </template>
+            </div>
+            <div v-else class="game winner">
+                {{getWinner}}
             </div>
         </div>
     </div>
@@ -67,10 +69,12 @@ import {mapState} from 'vuex';
 import Card from './Card';
 import Countdown from './Countdown';
 import PlayerName from './PlayerName';
+import RoomSettings from "./RoomSettings";
 
 export default {
     name: 'Board',
     components: {
+        RoomSettings,
         PlayerName,
         Card,
         Countdown
@@ -83,12 +87,13 @@ export default {
             room: state => state.Room.RoomID,
             currTurn: state => state.Room.Turn,
             maxTurn: state => state.Room.MaxTurn,
+            zenMode: state => state.Room.ZenMode,
             participants: state => state.Room.Participants,
             isStarted: state => state.Room.Started,
             isJudge: state => state.User.IsJudge,
             turnState: state => state.Room.TurnState,
             isAdmin: state => state.User.IsAdmin,
-            winner: state => state.Room.Winner
+            winner: state => state.Room.Winner,
         }),
         getCards() {
             return this.$store.state.User.Hand.filter((card) => card !== undefined && card !== null)
@@ -124,14 +129,41 @@ export default {
         },
         isReady() {
             return this.$store.state.Room.Participants.length >= 3
+        },
+        isPlaying() {
+            return this.$store.getters.IsPlaying;
+        },
+        getWinner() {
+            let winners = [""];
+            let winnerScore = -1;
+            this.$store.state.Room.Participants.forEach(e => {
+                if (e.Score === winnerScore) {
+                    winners.push(e.Username);
+                    winnerScore = e.Score;
+                } else if (e.Score > winnerScore) {
+                    winners = [e.Username];
+                    winnerScore = e.Score;
+                }
+            })
+
+            if (winnerScore === 0) {
+                return "Personne n'a gagné !";
+            }
+
+            if (winners.length === 1) {
+                return "Le gagnant est " + winners[0] + " !";
+            }
+
+            if (winners.length === this.$store.state.Room.Participants.length) {
+                return "Match nul !";
+            }
+
+            return "Les gagnants sont " + winners.join(", ") + " !";
         }
     },
     methods: {
-        startGame() {
-            this.$store.dispatch('startGame');
-        },
-        sendAnswers() {
-            this.$store.dispatch('answer');
+        skipCountdown() {
+            this.$store.dispatch('skipCountdown');
         },
         exit() {
             window.location.reload();
@@ -228,6 +260,10 @@ export default {
                     align-items: center;
                     justify-content: space-around;
                     padding: 2em;
+                }
+
+                &.winner {
+                    justify-content: center;
                 }
             }
         }

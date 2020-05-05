@@ -38,13 +38,25 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 
 	case "START_GAME":
 		if u.IsAdmin {
-			StartGame(u.Room, []int{})
+			StartGame(u.Room)
 		}
 		break
 
 	case "SEND_SELECTION":
 		ReceiveAnswers(u, cmd.Arguments)
 		break
+
+	case "SKIP_COUNTDOWN":
+		if u.IsJudge {
+			u.Room.CurrentCountdown = 0
+		}
+		break
+
+	case "SET_SETTINGS":
+		if u.IsAdmin {
+			SetSettings(u, cmd.Arguments)
+		}
+		break;
 
 	default:
 		fmt.Printf("Unhandled command from %v: %v\n", u.Username, cmd.Command)

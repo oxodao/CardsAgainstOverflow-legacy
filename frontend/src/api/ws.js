@@ -48,6 +48,10 @@ export function parseMessage(store, toasted, msg) {
             store.commit('setPlayerList', cmd.Arguments)
             break;
 
+        case 'GOT_SETTINGS':
+            store.commit('gotSettings', cmd.Arguments);
+            break;
+
         case 'COUNTDOWN':
             store.commit('setCountdown', cmd.Arguments)
             break;

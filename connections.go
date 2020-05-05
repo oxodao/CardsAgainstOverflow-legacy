@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/oxodao/cardsagainstoverflow/dal"
 	"net/url"
 	"strings"
 	"time"
@@ -33,7 +34,9 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 
 	if client.Room == nil && len(params["room"][0]) == 0 {
 		r := GenerateNewRoom(client)
+
 		client.IsAdmin = true
+
 		game.Join(client, r)
 		game.Rooms = append(game.Rooms, r)
 	} else if (client.Room) == nil {
@@ -72,11 +75,14 @@ func KickIfExists(client *model.User) bool {
 // GenerateNewRoom create a room and set the default parameters
 func GenerateNewRoom(client *model.User) *model.Room {
 	newID, _ := gonanoid.Generate("abcdefghijklmnopqrstuvwxyz0123456789", 6)
+	decks, _ := dal.FetchAllDecks()
 	r := &model.Room{
 		RoomID:       strings.ToUpper(newID),
 		Participants: []*model.User{},
 		Started:      false,
-		MaxTurn:      7,
+		MaxTurn:      10,
+		AvailableDecks: decks,
+		DefaultCountdown: 80,
 	}
 
 	game.Rooms = append(game.Rooms, r)

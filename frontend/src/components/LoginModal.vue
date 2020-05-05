@@ -1,6 +1,6 @@
 <template>
   <div id="modal-login">
-    <img src="../assets/logo.png"/>
+    <img src="../assets/logo.png" alt="logo"/>
     <h1>Cards Against Overflow</h1>
     <form @submit="auth">
         <input v-model="username" id="username" type="text" name="username" placeholder="Pseudo" required/>

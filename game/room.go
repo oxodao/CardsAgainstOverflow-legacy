@@ -27,8 +27,27 @@ func StartTurn(r *model.Room, gameStarting bool) {
 			FillHand(r.Participants[i])
 		}
 	} else {
-		Log(r, "Turn is over. Let's go for another one")
 		r.Turn = r.Turn + 1
+
+		// If the game has ended, no need to do another turn
+		if r.Turn > r.MaxTurn && !r.ZenMode {
+			// Sending the last gamestate before concluding the game
+			gs := dto.GameState(r)
+
+			for _, player := range r.Participants {
+				gs.SetUser(player)
+				err := SendCommand(player, model.CommandSetGamestate, gs)
+				if err != nil {
+					fmt.Println("Err: ", err)
+				}
+			}
+
+			Log(r, "Game over!")
+
+			return
+		}
+
+		Log(r, fmt.Sprintf("Turn %v / %v\n", r.Turn, r.MaxTurn))
 
 		// If the previous player in the list was judge we set it to the current one
 		wasJudge := false
@@ -51,8 +70,7 @@ func StartTurn(r *model.Room, gameStarting bool) {
 	}
 
 	r.SelectedCards = []*model.Card{}
-	// @TODO: personnalisable
-	r.CurrentCountdown = DefaultCountdown
+	r.CurrentCountdown = r.DefaultCountdown
 
 	r.Answers = []*model.Proposal{}
 	r.Winner = ""
@@ -73,29 +91,39 @@ func StartTurn(r *model.Room, gameStarting bool) {
 }
 
 // StartGame starts the game
-func StartGame(r *model.Room, decks []int) {
+func StartGame(r *model.Room) {
 	if r.IsReady() {
 		r.Started = true
 		r.Participants[0].IsJudge = true
 
-		RoomSelectDecks(r, decks)
+		if RoomSelectDecks(r) != nil {
+			Log(r, "Can't fetch decks!")
+		}
 
 		StartTurn(r, true)
 		RunCountdown(r, CountdownProcess)
 	}
 }
 
-func RoomSelectDecks(r *model.Room, selectedDecks []int) error {
+func RoomSelectDecks(r *model.Room) error {
 	var err error
 	var decks []*model.Deck
 
-	if len(selectedDecks) == 0 {
-		decks, err = dal.FetchAllDecks() // @TODO: use only what players want
-		if err != nil {                  // Use selected decks. Fallback on FatchAllDecks only when no deck are selected
-			return err
+	selectedDecks := []int64{}
+	for _, d := range r.AvailableDecks {
+		if d.IsSelected {
+			selectedDecks = append(selectedDecks, d.ID)
 		}
-	} else {
+	}
 
+	if len(selectedDecks) == 0 {
+		decks, err = dal.FetchAllDecks()
+	} else {
+		decks, err = dal.FetchSelectedDecks(selectedDecks)
+	}
+
+	if err != nil {
+		return err
 	}
 
 	err = dal.FetchCardsForDecks(decks)
@@ -206,6 +234,10 @@ func QuitRoom(u *model.User, reason string) {
 
 // ReceiveAnswers set the answer for the user
 func ReceiveAnswers(u *model.User, argsString string) {
+	if u.Room.Turn > u.Room.MaxTurn {
+		return
+	}
+
 	args := []int{}
 	err := json.Unmarshal([]byte(argsString), &args)
 	if err != nil {
@@ -260,8 +292,7 @@ func CountdownProcess(r *model.Room) {
 	if r.TurnState == model.TurnStatePlayer || r.TurnState == model.TurnStateJudge {
 		if r.TurnState == model.TurnStatePlayer {
 			r.TurnState = model.TurnStateJudge
-			// @TODO: personnalisable
-			r.CurrentCountdown = DefaultCountdown
+			r.CurrentCountdown = r.DefaultCountdown
 
 			for _, p := range r.Participants {
 				// We don't take the judge
@@ -284,29 +315,30 @@ func CountdownProcess(r *model.Room) {
 				}
 			}
 
+			if len(r.Answers) == 0 {
+				StartTurn(r, false)
+				return
+			}
+
 			utils.Shuffle(r.Answers)
 
 			for i, c := range r.Answers {
 				c.ID = i
 			}
 		} else if r.TurnState == model.TurnStateJudge {
-			if len(r.Answers) == 0 {
-				StartTurn(r, false)
-				return
-			}
-
 			r.TurnState = model.TurnStateShowWinner
 			r.CurrentCountdown = 6
 
 			if r.WinningAnswer == nil {
 				// The judge has not answered so we'll give it to a random player
 				size := len(r.Answers) - 1
+				selected := 0
 
-				if size == 0 {
-					return
+				// If there are multiple players
+				if size > 0 {
+					selected = rand.Intn(size)
 				}
 
-				selected := rand.Intn(size)
 				r.WinningAnswer = r.Answers[selected]
 			}
 
@@ -328,6 +360,32 @@ func CountdownProcess(r *model.Room) {
 	} else if r.TurnState == model.TurnStateShowWinner {
 		StartTurn(r, false)
 	}
+
+}
+
+type gotSettings struct {
+	SelectedDecks []int64
+	MaxTurn int
+	ZenMode bool
+	DefaultCountdown int
+}
+
+func SetSettings(u *model.User, argStr string) {
+	settings := gotSettings{}
+	err := json.Unmarshal([]byte(argStr), &settings)
+	if err != nil {
+		Log(u.Room, fmt.Sprint("Can't parse settings: %v", err))
+		return
+	}
+
+	for _, v := range u.Room.AvailableDecks {
+		v.IsSelected = model.Contains(settings.SelectedDecks, v.ID)
+	}
+	u.Room.MaxTurn = settings.MaxTurn
+	u.Room.ZenMode = settings.ZenMode
+	u.Room.DefaultCountdown = settings.DefaultCountdown
+
+	Broadcast(u.Room, model.CommandGotSettings, settings)
 
 }
 

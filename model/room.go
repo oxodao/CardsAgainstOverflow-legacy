@@ -27,9 +27,9 @@ type Room struct {
 	CurrentBlackCard *Card
 
 	TurnState        TurnState
+	DefaultCountdown int
 	CurrentCountdown int `json:"-"`
 
-	SelectedDecks []*Card `json:"-"`
 	SelectedCards []*Card `json:"-"`
 
 	RemainingCards      []*Card `json:"-"`
@@ -41,6 +41,8 @@ type Room struct {
 	Answers        []*Proposal
 	WinningAnswer  *Proposal
 	Winner         string
+
+	AvailableDecks []*Deck
 }
 
 // IsReady returns whether the game can start
@@ -48,20 +50,29 @@ func (r *Room) IsReady() bool {
 	return len(r.Participants) >= 3
 }
 
-/**
-	@TODO: When there are no more cards, refill with used cards
-**/
-
 // PickCard picks a new white card and put it in the used backlog
 func (r *Room) PickCard() *Card {
-	i := len(r.RemainingCards)
-	// If i == 0 => No more cards available
-	// We'll do something later when we implement zen mode
-	if i == 0 {
-		return nil
+	amtRemaining := len(r.RemainingCards)
+
+	// If there are no more cards, we refill
+	if amtRemaining == 0 {
+		tmpUsed := []*Card{}
+		playerCards := GetAllPlayersCardsID(r)
+
+		for _, v := range r.UsedCards {
+			// We don't take it back if someone still has it in his hand
+			if !Contains(playerCards, v.ID) {
+				r.RemainingCards = append(r.RemainingCards, v)
+			} else {
+				tmpUsed = append(tmpUsed, v)
+			}
+		}
+
+		r.UsedCards = tmpUsed
+		amtRemaining = len(r.RemainingCards)
 	}
 
-	cardPicked := rand.Intn(i)
+	cardPicked := rand.Intn(amtRemaining)
 	card := r.RemainingCards[cardPicked]
 
 	r.RemainingCards[cardPicked] = r.RemainingCards[len(r.RemainingCards)-1]
@@ -74,15 +85,22 @@ func (r *Room) PickCard() *Card {
 
 // PickBlackCard picks a new black card and put it in the used backlog
 func (r *Room) PickBlackCard() *Card {
-	i := len(r.RemainingBlackCards)
+	amtRemaining := len(r.RemainingBlackCards)
 
-	// If i == 0 => No more cards available
-	// We'll do something later when we implement zen mode
-	if i == 0 {
-		return nil
+	// If there are no more cards, we refill
+	if amtRemaining == 0 {
+		for _, v := range r.UsedBlackCards {
+			// We don't take the current card of course
+			if v.ID != r.CurrentBlackCard.ID {
+				r.RemainingBlackCards = append(r.RemainingBlackCards, v)
+			}
+		}
+
+		r.UsedCards = []*Card{}
+		amtRemaining = len(r.RemainingBlackCards)
 	}
 
-	cardPicked := rand.Intn(i)
+	cardPicked := rand.Intn(amtRemaining)
 	card := r.RemainingBlackCards[cardPicked]
 
 	r.RemainingBlackCards[cardPicked] = r.RemainingBlackCards[len(r.RemainingBlackCards)-1]
@@ -91,4 +109,25 @@ func (r *Room) PickBlackCard() *Card {
 	r.UsedBlackCards = append(r.UsedBlackCards, card)
 
 	return card
+}
+
+
+// Utils
+func GetAllPlayersCardsID(r *Room) []int64 {
+	cards := []int64{}
+	for _, p := range r.Participants {
+		for _, c := range p.Hand {
+			cards = append(cards, c.ID)
+		}
+	}
+	return cards
+}
+
+func Contains(cards []int64, card int64) bool {
+	for _, c := range cards {
+		if c == card {
+			return true
+		}
+	}
+	return false
 }
