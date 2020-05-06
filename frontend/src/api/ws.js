@@ -15,6 +15,10 @@ export function connect(e) {
     ws.onerror = (e) => console.log("ERR: ", e);
     ws.onclose = (e) => console.log("Connection closed: ", e)
 
+    if (process.env.NODE_ENV !== "development") {
+        localStorage.setItem('username', this.username);
+    }
+
     window.setInterval(function() {
         ws.send(JSON.stringify({
             Command: 'PING',
