@@ -1,5 +1,5 @@
 <template>
-    <div v-if="countdown !== '?'">
+    <div v-if="countdown !== '?'" v-bind:class="isNearEnd ? 'near' : ''">
         {{ countdown }}
     </div>
 </template>
@@ -9,7 +9,10 @@ export default {
     name: 'Countdown',
     computed: {
         countdown() {
-            return this.$store.state.Room.CurrentCountdown ?? '?'
+            return this.$store.state.Room.CurrentCountdown ?? '?';
+        },
+        isNearEnd() {
+            return this.$store.state.Room.CurrentCountdown < 10;
         }
     }
 }
@@ -29,5 +32,10 @@ export default {
         position: absolute;
         bottom: 1em;
         right: 1em;
+    }
+
+    .near {
+        background: rgba(#eb5454, .75);
+        border: 1px solid rgba(#ff0000, .25);
     }
 </style>

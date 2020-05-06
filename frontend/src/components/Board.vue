@@ -20,7 +20,7 @@
                 </ul>
 
                 <h3 v-if="isStarted && currTurn <= maxTurn && !zenMode">Tour: {{currTurn}} / {{maxTurn}}</h3>
-                <h3 v-else-if="isStarted && currTurn <= maxTurn">Tour: {{currTurn}}</h3>
+                <h3 v-else-if="isStarted && (zenMode || currTurn <= maxTurn)">Tour: {{currTurn}}</h3>
             </nav>
             <div v-if="isPlaying" class="game">
                 <div id="question">
@@ -35,7 +35,10 @@
                     </h1>
                 </div>
                 <template>
-                    <RoomSettings v-if="!isStarted"/>
+                    <div v-if="!isStarted || turnState === 2">
+                        <h1 v-if="turnState === 2" class="winner">{{ winner }}</h1>
+                        <RoomSettings v-if="!isStarted || currTurn > maxTurn"/>
+                    </div>
                     <div v-else-if="turnState === 0 && !isJudge" id="hack">
                         <div id="cards">
                             <Card v-for="(card, index) in getCards" :key="card.ID+card.isSelected" v-bind:isProposal="false" v-bind:index="index" v-bind:currCard="card" />
@@ -52,13 +55,12 @@
                             <button @click="skipCountdown">Voter !</button>
                         </div>
                     </div>
-                    <div v-else-if="turnState === 2">
-                        <h1 class="winner">{{ winner }}</h1>
-                    </div>
+
                 </template>
             </div>
             <div v-else class="game winner">
-                {{getWinner}}
+                <h1>{{getWinner}}</h1>
+                <RoomSettings v-if="currTurn > maxTurn"/>
             </div>
         </div>
     </div>
@@ -116,8 +118,15 @@ export default {
             let values = [];
             txtSplitted.forEach(e => {
                 if (e === "____") {
+                    let Question = "";
+                    let winning = this.$store.state.Room.WinningAnswer;
+                    if (winning !== undefined && winning !== null) {
+                        Question = winning.Cards[curr].Text
+                    } else {
+                        Question = this.$store.state.Room.Answers[this.$store.state.Room.JudgeSelection].Cards[curr].Text
+                    }
                     values.push({
-                        Question: this.$store.state.Room.Answers[this.$store.state.Room.JudgeSelection].Cards[curr].Text,//"ANSW" + curr, //this.selectedAnswers[this.selectedAnswersIndex].Cards[curr],
+                        Question,
                         Class: 'colored'
                     })
                     curr++
@@ -308,11 +317,12 @@ export default {
         color: #3EC480;
     }
 
-    .winner {
+    .winner h1{
         height: 5em;
         color: #3EC480;
         text-transform: uppercase;
         animation: glow 2s ease-in-out infinite alternate;
+        text-align: center;
     }
 
     @keyframes glow {

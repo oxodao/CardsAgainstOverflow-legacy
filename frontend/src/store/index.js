@@ -49,6 +49,16 @@ export default new Vuex.Store({
             Vue.set(state.Room, 'CurrentCountdown', payload);
         },
         toggleSelection: (state, payload) => {
+            // If we have only one card, no need to do weird things, just switching the current one
+            if (state.Room.CurrentBlackCard.AmtCardRequired === 1) {
+                if (state.SelectedCards.includes(payload)) {
+                    state.SelectedCards = [];
+                } else {
+                    state.SelectedCards = [payload];
+                }
+                return
+            }
+
             if (state.SelectedCards.includes(payload)) {
                 Vue.set(state.SelectedCards, state.SelectedCards.indexOf(payload), -1);
                 state.User.Hand.isSelected = false;
@@ -153,6 +163,6 @@ export default new Vuex.Store({
     getters: {
         IsPlayerJudge: state => state.User.IsJudge,
         IsPlayerAdmin: state => state.User.IsAdmin,
-        IsPlaying: state => (state.Room.Turn <= state.Room.MaxTurn),
+        IsPlaying: state => (state.Room.ZenMode || state.Room.Turn <= state.Room.MaxTurn),
     }
 })

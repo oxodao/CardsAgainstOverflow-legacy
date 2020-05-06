@@ -31,6 +31,7 @@ func StartTurn(r *model.Room, gameStarting bool) {
 
 		// If the game has ended, no need to do another turn
 		if r.Turn > r.MaxTurn && !r.ZenMode {
+			r.Started = false
 			// Sending the last gamestate before concluding the game
 			gs := dto.GameState(r)
 
@@ -47,7 +48,11 @@ func StartTurn(r *model.Room, gameStarting bool) {
 			return
 		}
 
-		Log(r, fmt.Sprintf("Turn %v / %v", r.Turn, r.MaxTurn))
+		if r.ZenMode {
+			Log(r, fmt.Sprintf("Turn %v", r.Turn))
+		} else {
+			Log(r, fmt.Sprintf("Turn %v / %v", r.Turn, r.MaxTurn))
+		}
 
 		// If the previous player in the list was judge we set it to the current one
 		wasJudge := false
@@ -55,7 +60,7 @@ func StartTurn(r *model.Room, gameStarting bool) {
 			// We drop played cards
 			for _, c := range GetPlayedCards(p) {
 				for i, currCard := range p.Hand {
-					if c.ID == currCard.ID {
+					if c != nil && currCard != nil && c.ID == currCard.ID {
 						p.Hand[i] = nil
 					}
 				}
@@ -104,7 +109,13 @@ func StartTurn(r *model.Room, gameStarting bool) {
 func StartGame(r *model.Room) {
 	if r.IsReady() {
 		r.Started = true
-		r.Participants[0].IsJudge = true
+		r.Turn = 0;
+		r.Turn = r.MaxTurn-1
+
+		for i, p := range r.Participants {
+			p.IsJudge = i == 0
+			p.Score = 0
+		}
 
 		if RoomSelectDecks(r) != nil {
 			Log(r, "Can't fetch decks!")
@@ -270,7 +281,6 @@ func ReceiveAnswers(u *model.User, argsString string) {
 			// We can process the request
 			u.SelectedCards = args
 
-			// We set the final countdown tudoduto tudodutoto
 			canDropCounter := true
 			for _, p := range u.Room.Participants {
 				if p.IsJudge {
@@ -289,6 +299,7 @@ func ReceiveAnswers(u *model.User, argsString string) {
 				}
 			}
 
+			// We set the final countdown tudoduto tudodutoto
 			if canDropCounter && u.Room.CurrentCountdown > 10 {
 				u.Room.CurrentCountdown = 10
 			}

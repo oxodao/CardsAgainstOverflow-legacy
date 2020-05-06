@@ -1,6 +1,8 @@
 package main
 
 import (
+	cryptorand "crypto/rand"
+	"encoding/binary"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -14,7 +16,12 @@ import (
 )
 
 func main() {
-	rand.Seed(time.Now().Unix())
+	var b [8]byte
+	_, err := cryptorand.Read(b[:])
+	if err != nil {
+		panic("cannot seed math/rand package with cryptographically secure random number generator")
+	}
+	rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
 	dbCreationFile := flag.String("create_db", "", "File that contains initial decks to create the database")
 
 	flag.Parse()
@@ -30,8 +37,6 @@ func main() {
 	fmt.Println("CardsAgainstOverflow")
 
 	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*") // @TODO: Disable before building
-
 		conn, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 		if err != nil {
 			fmt.Println("Can't upgrade connection for this client")
@@ -63,7 +68,7 @@ func main() {
 		}
 	}()
 
-	err := http.ListenAndServe("0.0.0.0:8000", nil)
+	err = http.ListenAndServe("0.0.0.0:8000", nil)
 	if err != nil {
 		fmt.Println(err)
 	}
