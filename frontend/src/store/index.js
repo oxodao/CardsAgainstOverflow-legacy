@@ -26,6 +26,7 @@ export default new Vuex.Store({
         },
         SelectedCards: [],
         ShowLogin: true,
+        ShowRules: false,
         Websocket: null,
     },
     mutations: {
@@ -34,6 +35,10 @@ export default new Vuex.Store({
         },
         setPlayerList: (state, payload) => {
             state.Room.Participants = payload;
+        },
+        showRules: (state) => {
+            state.ShowRules = !state.ShowRules;
+            console.log("Showing rules; " +state.ShowRules)
         },
         setState: (state, payload) => {
             let ws = state.Websocket;

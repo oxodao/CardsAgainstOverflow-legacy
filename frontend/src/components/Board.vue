@@ -1,5 +1,6 @@
 <template>
     <div id="board">
+        <a id="ruleLink" @click="showRules">Règles / Utilisation</a>
         <header>
             <h1>Cards Against Overflow</h1>
             <div class="gameinfo">
@@ -86,8 +87,6 @@ export default {
     },
     computed: {
         ...mapState({
-            buttonSendAnswers: state => state.CurrentState.SendAnswersAllowed,
-            hasPlayed: state => state.User.HasPlayed,
             currBlackCard: state => state.Room.CurrentBlackCard,
             room: state => state.Room.RoomID,
             currTurn: state => state.Room.Turn,
@@ -176,6 +175,9 @@ export default {
     methods: {
         skipCountdown() {
             this.$store.dispatch('skipCountdown');
+        },
+        showRules() {
+            this.$store.commit('showRules');
         },
         exit() {
             window.location.reload();
@@ -353,5 +355,12 @@ export default {
         h1 {
             font-size: 1.5em;
         }
+    }
+
+
+    #ruleLink {
+        position: absolute;
+        top: 1em;
+        left: 1em;
     }
 </style>
