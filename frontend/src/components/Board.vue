@@ -42,15 +42,15 @@
                         <h1 v-if="turnState === 2" class="winner">{{ winner }}</h1>
                         <RoomSettings v-if="!isStarted || currTurn > maxTurn"/>
                     </div>
-                    <div v-else-if="turnState === 0 && !isJudge" id="hack">
+                    <div v-else-if="turnState === 0 && !isJudge && isReady" id="hack">
                         <div id="cards">
                             <Card v-for="(card, index) in getCards" :key="card.ID+card.isSelected" v-bind:isProposal="false" v-bind:index="index" v-bind:currCard="card" />
                         </div>
                     </div>
-                    <div v-else-if="turnState === 0 && isJudge">
+                    <div v-else-if="turnState === 0 && isJudge && isReady">
                         <h3>Les joueurs jouent!</h3>
                     </div>
-                    <div v-else-if="turnState === 1">
+                    <div v-else-if="turnState === 1 && isReady">
                         <div id="cards">
                             <Card v-for="(card, index) in getProposals" :key="card.ID+card.isSelected" v-bind:isProposal="true" v-bind:index="index" v-bind:currCard="card" />
                         </div>
