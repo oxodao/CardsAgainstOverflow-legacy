@@ -231,6 +231,18 @@ func QuitRoom(u *model.User, reason string) {
 		}
 	}
 
+	index = -1
+	for i := range Users {
+		if Users[i].Username == u.Username { // Not that great but meh, should compare on pointer but doesn't seems to work
+			index = i
+			break
+		}
+	}
+
+	if index >= 0 {
+		Users = append(Users[:index], Users[index+1:]...)
+	}
+
 	u.Connection.Close()
 
 	SendGamestateAll(room)
