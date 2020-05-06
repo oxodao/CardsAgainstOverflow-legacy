@@ -33,15 +33,7 @@ func StartTurn(r *model.Room, gameStarting bool) {
 		if r.Turn > r.MaxTurn && !r.ZenMode {
 			r.Started = false
 			// Sending the last gamestate before concluding the game
-			gs := dto.GameState(r)
-
-			for _, player := range r.Participants {
-				gs.SetUser(player)
-				err := SendCommand(player, model.CommandSetGamestate, gs)
-				if err != nil {
-					fmt.Println("Err: ", err)
-				}
-			}
+			SendGamestateAll(r)
 
 			Log(r, "Game over!")
 
@@ -93,24 +85,15 @@ func StartTurn(r *model.Room, gameStarting bool) {
 
 	r.TurnState = model.TurnStatePlayer
 
-	// Creating a gamestate
-	gs := dto.GameState(r)
-
-	for _, player := range r.Participants {
-		gs.SetUser(player)
-		err := SendCommand(player, model.CommandSetGamestate, gs)
-		if err != nil {
-			fmt.Println("Err: ", err)
-		}
-	}
+	SendGamestateAll(r)
 }
 
 // StartGame starts the game
 func StartGame(r *model.Room) {
 	if r.IsReady() {
 		r.Started = true
-		r.Turn = 0;
-		r.Turn = r.MaxTurn-1
+		r.Turn = 1;
+		//r.Turn = r.MaxTurn-1 // Debug only
 
 		for i, p := range r.Participants {
 			p.IsJudge = i == 0
@@ -177,9 +160,9 @@ func Join(u *model.User, r *model.Room) {
 		FillHand(u)
 	}
 
-	Log(r, u.Username+" has joined the room.")
+	SendGamestateAll(r)
 
-	SendPlayerList(r)
+	Log(r, u.Username+" has joined the room.")
 }
 
 func QuitRoom(u *model.User, reason string) {
@@ -250,7 +233,19 @@ func QuitRoom(u *model.User, reason string) {
 
 	u.Connection.Close()
 
-	SendPlayerList(room)
+	SendGamestateAll(room)
+}
+
+func SendGamestate(u *model.User) {
+	gs := dto.GameState(u.Room)
+	gs.SetUser(u)
+	SendCommand(u, model.CommandSetGamestate, gs)
+}
+
+func SendGamestateAll(r *model.Room) {
+	for _, p := range r.Participants {
+		SendGamestate(p)
+	}
 }
 
 // ReceiveAnswers set the answer for the user
@@ -368,15 +363,7 @@ func CountdownProcess(r *model.Room) {
 		}
 
 		// Send GameState
-		gs := dto.GameState(r)
-
-		for _, player := range r.Participants {
-			gs.SetUser(player)
-			err := SendCommand(player, model.CommandSetGamestate, gs)
-			if err != nil {
-				fmt.Println("Err: ", err)
-			}
-		}
+		SendGamestateAll(r)
 
 	} else if r.TurnState == model.TurnStateShowWinner {
 		StartTurn(r, false)

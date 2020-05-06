@@ -24,8 +24,11 @@
             </nav>
             <div v-if="isPlaying" class="game">
                 <div id="question">
-                    <h1 v-if="currBlackCard !== undefined && currBlackCard !== null" id="questionText">
+                    <h1 v-if="currBlackCard !== undefined && currBlackCard !== null && isReady" id="questionText">
                         <span v-for="txt in getCardText" v-bind:key="txt.Question" v-bind:class="txt.Class">{{txt.Question}}</span>
+                    </h1>
+                    <h1 v-else-if="currBlackCard !== undefined && currBlackCard !== null && !isReady" id="questionText">
+                        Il n'y a plus assez de joueurs !
                     </h1>
                     <h1 v-else-if="isStarted" id="questionText">Attente de nouveaux joueurs</h1>
                     {{/* For some reasons the v-else doesn't work here... */ }}
@@ -317,7 +320,7 @@ export default {
         color: #3EC480;
     }
 
-    .winner h1{
+    .winner h1, h1.winner {
         height: 5em;
         color: #3EC480;
         text-transform: uppercase;
