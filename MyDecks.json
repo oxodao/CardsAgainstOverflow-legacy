@@ -1,86 +1,21 @@
 {
     "Decks": [
         {
-            "Title": "Cards Against Overflow",
-            "Cards": [
-                {
-                    "Text": "Le vendredi c'est ____",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "Tu sais qui d'autre aimait ____? Hitler.",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "Du tang goût kebab",
-                    "IsBlackCard": false
-                },
-                {
-                    "Text": "Les portugais",
-                    "IsBlackCard": false
-                }
-            ]
-        },
-        {
             "Title": "Blanc Manger Coco",
             "Cards": [
                 {
+                    "Text": "____, blabla, ____, blabla ____",
+                    "IsBlackCard": true
+                },
+                {
                     "Text": "____, j'y pense tous les matins en me rasant",
                     "IsBlackCard": true
-                },
-                {
-                    "Text": "____, ça c'est tellement ton père",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "Le chantage sexuel",
-                    "IsBlackCard": false
-                },
-                {
-                    "Text": "Une pièce, une cigarette ou un ticket de restaurant",
-                    "IsBlackCard": false
                 }
             ]
         },
         {
             "Title": "Blanc Manger Coco 2",
             "Cards": [
-                {
-                    "Text": "Vous aimez ____, votre témoignage nous intéresse, cliquez ici",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "____, ça, ça a le don de m'énerver !",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "Il y a jusqu'à -70% sur ____, ça serait con de ne pas en profiter !",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "La poésie illustrée, le tome 1, ____ et son fascicule, 3.90€ chez votre marchand de journaux",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "____, c'est très important lors de ta première semaine de boulot",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "Dès 07h00 du matin, ____, c'est sévère, c'est rude",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "____ et ta libido repart !",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "Sans ____, la fete est moins folle",
-                    "IsBlackCard": true
-                },
-                {
-                    "Text": "Astérix et Obélix et ____",
-                    "IsBlackCard": true
-                },
                 {
                     "Text": "Rentrer ses testicules en cas de danger",
                     "IsBlackCard": false

@@ -41,7 +41,7 @@
                 <template>
                     <div v-if="!isStarted || turnState === 2">
                         <h1 v-if="turnState === 2" class="winner">{{ winner }}</h1>
-                        <RoomSettings v-if="!isStarted || currTurn > maxTurn"/>
+                        <RoomSettings v-if="!isStarted || (currTurn > maxTurn && !zenMode)"/>
                     </div>
                     <div v-else-if="turnState === 0 && !isJudge && isReady" id="hack">
                         <div id="cards">

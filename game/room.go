@@ -92,8 +92,8 @@ func StartTurn(r *model.Room, gameStarting bool) {
 func StartGame(r *model.Room) {
 	if r.IsReady() {
 		r.Started = true
-		r.Turn = 1;
-		//r.Turn = r.MaxTurn-1 // Debug only
+		r.Turn = 1
+		//r.Turn = r.MaxTurn // Debug only
 
 		for i, p := range r.Participants {
 			p.IsJudge = i == 0
@@ -262,7 +262,7 @@ func SendGamestateAll(r *model.Room) {
 
 // ReceiveAnswers set the answer for the user
 func ReceiveAnswers(u *model.User, argsString string) {
-	if u.Room.Turn > u.Room.MaxTurn {
+	if u.Room.Turn > u.Room.MaxTurn && !u.Room.ZenMode {
 		return
 	}
 
