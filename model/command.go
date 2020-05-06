@@ -9,6 +9,7 @@ const CommandSetGamestate string = "SET_GAMESTATE"
 const CommandCountdown string = "COUNTDOWN"
 const CommandJudgeSelection string = "JUDGE_SELECTION"
 const CommandGotSettings string = "GOT_SETTINGS"
+const CommandReroll string = "REROLL"
 
 type Command struct {
 	Command   string

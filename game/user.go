@@ -8,7 +8,16 @@ import (
 	"github.com/oxodao/cardsagainstoverflow/model"
 )
 
-var Users []model.User = make([]model.User, 0)
+func Reroll(u *model.User) {
+	if u.RerollTimeout == 0 {
+		u.Hand = [7]*model.Card{}
+		u.SelectedCards = []int{}
+		u.RerollTimeout = u.Room.DefaultRerollTimeout+1
+
+		FillHand(u)
+		SendGamestate(u)
+	}
+}
 
 func Receive(u *model.User) {
 	for {
@@ -57,6 +66,12 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 			SetSettings(u, cmd.Arguments)
 		}
 		break;
+
+	case "REROLL":
+		if !u.IsJudge {
+			Reroll(u)
+		}
+		break
 
 	default:
 		fmt.Printf("Unhandled command from %v: %v\n", u.Username, cmd.Command)

@@ -49,6 +49,11 @@ func StartTurn(r *model.Room, gameStarting bool) {
 		// If the previous player in the list was judge we set it to the current one
 		wasJudge := false
 		for _, p := range r.Participants {
+			// We decrement his reroll timeout
+			if p.RerollTimeout > 0 {
+				p.RerollTimeout = p.RerollTimeout - 1
+			}
+
 			// We drop played cards
 			for _, c := range GetPlayedCards(p) {
 				for i, currCard := range p.Hand {
@@ -231,18 +236,6 @@ func QuitRoom(u *model.User, reason string) {
 		}
 	}
 
-	index = -1
-	for i := range Users {
-		if Users[i].Username == u.Username { // Not that great but meh, should compare on pointer but doesn't seems to work
-			index = i
-			break
-		}
-	}
-
-	if index >= 0 {
-		Users = append(Users[:index], Users[index+1:]...)
-	}
-
 	u.Connection.Close()
 
 	SendGamestateAll(room)
@@ -388,6 +381,7 @@ type gotSettings struct {
 	MaxTurn int
 	ZenMode bool
 	DefaultCountdown int
+	DefaultRerollTimeout int
 }
 
 func SetSettings(u *model.User, argStr string) {
@@ -404,6 +398,7 @@ func SetSettings(u *model.User, argStr string) {
 	u.Room.MaxTurn = settings.MaxTurn
 	u.Room.ZenMode = settings.ZenMode
 	u.Room.DefaultCountdown = settings.DefaultCountdown
+	u.Room.DefaultRerollTimeout = settings.DefaultRerollTimeout
 
 	Broadcast(u.Room, model.CommandGotSettings, settings)
 

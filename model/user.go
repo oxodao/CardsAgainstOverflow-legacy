@@ -13,6 +13,7 @@ type User struct {
 	Room     *Room `json:"-"`
 	Score    int
 	Hand     [7]*Card
+	RerollTimeout int
 
 	IsJudge       bool
 	SelectedCards []int `json:"-"`

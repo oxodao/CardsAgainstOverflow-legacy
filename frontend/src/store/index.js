@@ -22,6 +22,7 @@ export default new Vuex.Store({
             MaxTurn: 30,
             ZenMode: false,
             DefaultCountdown: 80,
+            DefaultRerollTimeout: 6,
             AvailableDecks: [],
         },
         SelectedCards: [],
@@ -90,6 +91,7 @@ export default new Vuex.Store({
             state.Room.MaxTurn = payload.MaxTurn;
             state.Room.ZenMode = payload.ZenMode;
             state.Room.DefaultCountdown = payload.DefaultCountdown;
+            state.Room.DefaultRerollTimeout = payload.DefaultRerollTimeout;
 
             for(let i = 0; i < state.Room.AvailableDecks.length; i++) {
                 let e = state.Room.AvailableDecks[i]
@@ -108,6 +110,9 @@ export default new Vuex.Store({
         },
         updateCountdown: (state, payload) => {
             state.Room.DefaultCountdown = parseInt(payload) ?? 80;
+        },
+        updateRerollTimeout: (state, payload) => {
+            state.Room.DefaultRerollTimeout = parseInt(payload) ?? 6;
         },
         updateSelectedDecks: (state, payload) => {
             payload.ID = parseInt(payload.ID);
@@ -129,6 +134,7 @@ export default new Vuex.Store({
                 MaxTurn: ctx.state.Room.MaxTurn,
                 ZenMode: ctx.state.Room.ZenMode,
                 DefaultCountdown: ctx.state.Room.DefaultCountdown,
+                DefaultRerollTimeout: ctx.state.Room.DefaultRerollTimeout,
             };
 
             ctx.state.Websocket.send(JSON.stringify({
@@ -163,6 +169,12 @@ export default new Vuex.Store({
                 Command: 'SKIP_COUNTDOWN',
                 Arguments: ''
             }))
+        },
+        reroll: (ctx) => {
+            ctx.state.Websocket.send(JSON.stringify({
+                Command: 'REROLL',
+                Arguments: ''
+            }));
         }
     },
     getters: {

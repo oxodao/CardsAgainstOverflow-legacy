@@ -20,6 +20,7 @@
                     <PlayerName v-for="player in participants" :key="player.Username + player.Score +player.IsJudge+player.IsAdmin" v-bind:username="player.Username" v-bind:score="player.Score" v-bind:isAdmin="player.IsAdmin" v-bind:isJudge="player.IsJudge" />
                 </ul>
 
+                <button v-if="canReroll && isStarted" @click="reroll">Re-roll</button>
                 <h3 v-if="isStarted && currTurn <= maxTurn && !zenMode">Tour: {{currTurn}} / {{maxTurn}}</h3>
                 <h3 v-else-if="isStarted && (zenMode || currTurn <= maxTurn)">Tour: {{currTurn}}</h3>
             </nav>
@@ -141,6 +142,9 @@ export default {
         isReady() {
             return this.$store.state.Room.Participants.length >= 3
         },
+        canReroll() {
+            return !this.isJudge && this.turnState === 0 && this.$store.state.User.RerollTimeout  === 0;
+        },
         isPlaying() {
             return this.$store.getters.IsPlaying;
         },
@@ -178,6 +182,9 @@ export default {
         },
         showRules() {
             this.$store.commit('showRules');
+        },
+        reroll() {
+          this.$store.dispatch('reroll');
         },
         exit() {
             window.location.reload();

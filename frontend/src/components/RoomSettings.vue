@@ -15,6 +15,10 @@
                 <div>
                     <input id="countdownDuration" type="number" min="10" :disabled="!IsAdmin" :value="countdown" @input="updateCountdown" />
                 </div>
+                <Label for="rerollTimeout">Nombre de tour entre re-roll</Label>
+                <div>
+                    <input id="rerollTimeout" type="number" min="0" :disabled="!IsAdmin" :value="rerollTimeout" @input="updateReroll" />
+                </div>
             </div>
             <button v-if="IsAdmin && isReady" @click="startGame">Démarrer</button>
         </div>
@@ -34,6 +38,7 @@
                 maxTurn: state => state.Room.MaxTurn,
                 zenMode: state => state.Room.ZenMode,
                 countdown: state => state.Room.DefaultCountdown,
+                rerollTimeout: state => state.Room.DefaultRerollTimeout,
 
                 selectedDecks: state => state.SelectedDecks,
             }),
@@ -56,6 +61,10 @@
             updateCountdown(e) {
                 this.$store.commit('updateCountdown', e.target.value);
                 this.$store.dispatch('sendSettings');
+            },
+            updateReroll(e) {
+              this.$store.commit('updateRerollTimeout', e.target.value);
+              this.$store.dispatch('sendSettings');
             },
             updateDeckSelection(e) {
                 this.$store.commit('updateSelectedDecks', { ID: e.target.getAttribute('data-id'), Selected: e.target.checked });

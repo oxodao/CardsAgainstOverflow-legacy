@@ -21,12 +21,16 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 		LastPing:   time.Now(),
 	}
 
-	if KickIfExists(client) {
-		return
-	}
-
 	for i := range game.Rooms {
 		if game.Rooms[i].RoomID == params["room"][0] {
+			// If there is already someone in the room with the same username, we don't let him connect
+			for _, p := range game.Rooms[i].Participants {
+				if p.Username == client.Username {
+					game.SendCommand(client, model.CommandCriticalError, "Un utilisateur est déjà connecté avec ce pseudo")
+					client.Connection.Close()
+					return
+				}
+			}
 			game.Join(client, game.Rooms[i])
 			break
 		}
@@ -45,8 +49,6 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 		return
 	}
 
-	game.Users = append(game.Users, *client)
-
 	gs := dto.GameState(client.Room)
 	gs.SetUser(client)
 
@@ -60,18 +62,6 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 	})
 }
 
-func KickIfExists(client *model.User) bool {
-	for i := range game.Users {
-		if game.Users[i].Username == client.Username {
-			game.SendCommand(client, model.CommandCriticalError, "Un utilisateur est déjà connecté avec ce pseudo")
-			client.Connection.Close()
-			return true
-		}
-	}
-
-	return false
-}
-
 // GenerateNewRoom create a room and set the default parameters
 func GenerateNewRoom(client *model.User) *model.Room {
 	newID, _ := gonanoid.Generate("abcdefghijklmnopqrstuvwxyz0123456789", 6)
@@ -82,6 +72,7 @@ func GenerateNewRoom(client *model.User) *model.Room {
 		Started:      false,
 		MaxTurn:      10,
 		AvailableDecks: decks,
+		DefaultRerollTimeout: 6,
 		DefaultCountdown: 80,
 	}
 

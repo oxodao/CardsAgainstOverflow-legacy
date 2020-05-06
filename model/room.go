@@ -25,6 +25,7 @@ type Room struct {
 	MaxTurn          int
 	Started          bool
 	CurrentBlackCard *Card
+	DefaultRerollTimeout int
 
 	TurnState        TurnState
 	DefaultCountdown int
