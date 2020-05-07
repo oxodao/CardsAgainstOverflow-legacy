@@ -63,6 +63,9 @@ func StartTurn(r *model.Room, gameStarting bool) {
 				}
 			}
 
+			// He hasn't played yet for this turn
+			p.HasPlayed = false
+
 			// Then we pick new ones
 			FillHand(p)
 
@@ -103,6 +106,11 @@ func StartGame(r *model.Room) {
 		for i, p := range r.Participants {
 			p.IsJudge = i == 0
 			p.Score = 0
+
+			// We set everything to nil because if we restart a game we don't want to keep the same cards
+			for j := range p.Hand {
+				p.Hand[j] = nil
+			}
 		}
 
 		if RoomSelectDecks(r) != nil {
@@ -110,7 +118,6 @@ func StartGame(r *model.Room) {
 		}
 
 		StartTurn(r, true)
-		RunCountdown(r, CountdownProcess)
 	}
 }
 
@@ -281,20 +288,25 @@ func ReceiveAnswers(u *model.User, argsString string) {
 			// We can process the request
 			u.SelectedCards = args
 
+			amtSelect := 0
+			for _, c := range u.SelectedCards {
+				if c != -1 {
+					amtSelect = amtSelect + 1
+				}
+			}
+
+			// We check if the player hasn't played yet because if it has, the message was already sent
+			if amtSelect == u.Room.CurrentBlackCard.AmtCardRequired && !u.HasPlayed {
+				u.HasPlayed = true
+				Broadcast(u.Room, model.CommandHasPlayed, u.Username)
+			}
+
 			canDropCounter := true
 			for _, p := range u.Room.Participants {
 				if p.IsJudge {
 					continue
 				}
-
-				amtSelect := 0
-				for _, c := range p.SelectedCards {
-					if c != -1 {
-						amtSelect = amtSelect + 1
-					}
-				}
-
-				if amtSelect < u.Room.CurrentBlackCard.AmtCardRequired {
+				if !p.HasPlayed {
 					canDropCounter = false
 				}
 			}

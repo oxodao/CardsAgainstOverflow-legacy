@@ -15,6 +15,9 @@ type User struct {
 	Hand     [7]*Card
 	RerollTimeout int
 
+	LastWizz int `json:"-"`
+	HasPlayed bool
+
 	IsJudge       bool
 	SelectedCards []int `json:"-"`
 

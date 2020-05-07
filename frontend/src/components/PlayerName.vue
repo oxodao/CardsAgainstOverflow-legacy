@@ -1,8 +1,10 @@
 <template>
     <li v-bind:class="isMe">
         <div>
-            <img v-if="isAdmin" src="@/assets/admin.png" alt="Admin"/>
-            <img v-if="isJudge" src="@/assets/gavel.png" alt="Judge"/>
+            <img v-if="hasPlayed" src="../assets/card_icon.png" alt="Has played"/>
+            <img v-if="isWizzing" src="../assets/msn_wizz.png" alt="Wizzing"/>
+            <img v-if="isAdmin" src="../assets/admin.png" alt="Admin"/>
+            <img v-if="isJudge" src="../assets/gavel.png" alt="Judge"/>
             <span>{{ username }}</span>
         </div>
         <span class="score">{{ score }}</span>
@@ -16,16 +18,16 @@ export default {
         'username',
         'score',
         'isAdmin',
-        'isJudge'
+        'isJudge',
+        'hasPlayed'
     ],
-    data: function() {
-        return {
-            currentUsername: this.username,
-        }
-    },
     computed: {
         isMe() {
-            return this.currentUsername == this.$store.state.User.Username ? "isMe" : ""
+            console.log(this.username, this.$store.state.User.Username, this.username === this.$store.state.User.Username)
+            return this.username === this.$store.state.User.Username ? "isMe" : ""
+        },
+        isWizzing() {
+            return this.$store.state.Wizz.includes(this.username);
         }
     }
 }
@@ -49,10 +51,10 @@ export default {
                 height: 1.15em;
                 margin-right: 10px;
             }
+        }
 
-            &.isMe {
-                background: #333;
-            }
+        &.isMe {
+            background: #444;
         }
 
         .score {

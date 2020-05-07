@@ -73,6 +73,13 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 		}
 		break
 
+	case "WIZZ":
+		if u.LastWizz == 0 {
+			Broadcast(u.Room, "WIZZ", u.Username)
+			u.LastWizz = 15
+		}
+		break
+
 	default:
 		fmt.Printf("Unhandled command from %v: %v\n", u.Username, cmd.Command)
 	}

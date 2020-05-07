@@ -77,6 +77,7 @@ func GenerateNewRoom(client *model.User) *model.Room {
 	}
 
 	game.Rooms = append(game.Rooms, r)
+	game.RunCountdown(r, game.CountdownProcess)
 	game.Log(r, "Creating the room.")
 
 	return r

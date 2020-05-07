@@ -1,6 +1,6 @@
 <template>
     <div id="modal-login">
-        <a id="ruleLink" @click="showRules">Règles / Utilisation</a>
+        <button id="ruleLink" @click="showRules">Règles / Utilisation</button>
         <img src="../assets/logo.png" alt="logo"/>
         <h1>Cards Against Overflow</h1>
         <form @submit="auth">

@@ -1,8 +1,11 @@
 <template>
-  <div id="app">
+  <div id="app" v-bind:class="showWizz">
     <Rules/>
     <LoginModal v-if="ShowModal"/>
     <Board v-else />
+      <audio autoPlay v-for="i in wizz" v-bind:key="i" @ended="remWiz(i)">
+        <source src="./assets/wizz.mp3" type="audio/mpeg" />
+      </audio>
   </div>
 </template>
 
@@ -19,14 +22,57 @@ export default {
     Rules,
     Board
   },
-  computed: mapState({
-    ShowModal: state => state.ShowLogin
-  })
+  computed: {
+    ...mapState({
+      ShowModal: state => state.ShowLogin,
+      wizz: state => state.Wizz,
+    }),
+    showWizz() {
+      return this.wizz.length > 0 ? "wizz" : "";
+    }
+  },
+  methods: {
+    remWiz(user) {
+      this.$store.commit('delWizz', user)
+    }
+  }
 }
 </script>
 
 <style>
   #app {
     height: 100vh;
+  }
+
+  .wizz {
+    animation: wizz .3s ease-in-out;
+    animation-iteration-count: infinite;
+  }
+
+  @keyframes wizz {
+    0% {
+      transform: translateX(-3vw) rotate(-5deg);
+    }
+    15% {
+      transform: translateX(3vw) rotate(0deg);
+    }
+    30% {
+      transform: translateX(-3vw) rotate(5deg);
+    }
+    45% {
+      transform: translateX(3vw) rotate(0deg);
+    }
+    60% {
+      transform: translateX(-3vw) rotate(-5deg);
+    }
+    75% {
+      transform: translateX(3vw) rotate(0deg);
+    }
+    90% {
+      transform: translateX(-3vw) rotate(5deg);
+    }
+    100% {
+      transform: translateX(0) rotate(0deg);
+    }
   }
 </style>

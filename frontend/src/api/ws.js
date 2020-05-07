@@ -4,25 +4,25 @@ export function connect(e) {
     e.preventDefault();
 
     let url = ""
-    if (process.env.NODE_ENV === "development") {
+    //if (process.env.NODE_ENV === "development") {
         url = "localhost:8000"
-    } else {
-        url = "cao-api.oxodao.fr"
-    }
+    //} else {
+        //url = "cao-api.oxodao.fr"
+    //}
 
     let ws = new WebSocket("ws://"+url+"/api?username=" + this.username + "&room=" + this.room)
     ws.onmessage = (e) => parseMessage(store, toasted, e.data);
     ws.onerror = (e) => console.log("ERR: ", e);
     ws.onclose = (e) => console.log("Connection closed: ", e)
 
-    if (process.env.NODE_ENV !== "development") {
-        localStorage.setItem('username', this.username);
-    }
+    //if (process.env.NODE_ENV !== "development") {
+        //localStorage.setItem('username', this.username);
+    //}
 
     window.setInterval(function() {
         ws.send(JSON.stringify({
             Command: 'PING',
-            Argments: '{}'
+            Arguments: '{}'
         }))
     }, 5000);
 
@@ -69,6 +69,18 @@ export function parseMessage(store, toasted, msg) {
 
         case 'JUDGE_SELECTION':
             store.commit('setJudgeSelection', cmd.Arguments)
+            break;
+
+        case 'WIZZ':
+            store.commit('addWizz', cmd.Arguments)
+            break;
+
+        case 'WIZZ_REFILLED':
+            store.commit('canWizz', true);
+            break;
+
+        case 'HAS_PLAYED':
+            store.commit('hasPlayed', cmd.Arguments)
             break;
 
         default:

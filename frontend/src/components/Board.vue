@@ -1,6 +1,6 @@
 <template>
     <div id="board">
-        <a id="ruleLink" @click="showRules">Règles / Utilisation</a>
+        <button id="ruleLink" @click="showRules">Règles / Utilisation</button>
         <header>
             <h1>Cards Against Overflow</h1>
             <div class="gameinfo">
@@ -17,10 +17,13 @@
 
                 <h2>Joueurs</h2>
                 <ul>
-                    <PlayerName v-for="player in participants" :key="player.Username + player.Score +player.IsJudge+player.IsAdmin" v-bind:username="player.Username" v-bind:score="player.Score" v-bind:isAdmin="player.IsAdmin" v-bind:isJudge="player.IsJudge" />
+                    <PlayerName v-for="player in participants" :key="player.Username + player.Score + player.IsJudge + player.IsAdmin + player.HasPlayed" v-bind:username="player.Username" v-bind:score="player.Score" v-bind:isAdmin="player.IsAdmin" v-bind:isJudge="player.IsJudge" v-bind:hasPlayed="player.HasPlayed" />
                 </ul>
 
-                <button v-if="canReroll && isStarted" @click="reroll">Re-roll</button>
+                <div id="actions">
+                    <button :disabled="!canWizz" @click="addWizz"><img src="../assets/msn_wizz.png" alt="wizz"/></button>
+                    <button v-if="isStarted" :disabled="!canReroll" @click="reroll"><img src="../assets/reroll.png" alt="Reroll"/></button>
+                </div>
                 <h3 v-if="isStarted && currTurn <= maxTurn && !zenMode">Tour: {{currTurn}} / {{maxTurn}}</h3>
                 <h3 v-else-if="isStarted && (zenMode || currTurn <= maxTurn)">Tour: {{currTurn}}</h3>
             </nav>
@@ -72,125 +75,130 @@
 </template>
 
 <script>
-import {mapState} from 'vuex';
-import Card from './Card';
-import Countdown from './Countdown';
-import PlayerName from './PlayerName';
-import RoomSettings from "./RoomSettings";
+    import {mapState} from 'vuex';
+    import Card from './Card';
+    import Countdown from './Countdown';
+    import PlayerName from './PlayerName';
+    import RoomSettings from "./RoomSettings";
 
-export default {
-    name: 'Board',
-    components: {
-        RoomSettings,
-        PlayerName,
-        Card,
-        Countdown
-    },
-    computed: {
-        ...mapState({
-            currBlackCard: state => state.Room.CurrentBlackCard,
-            room: state => state.Room.RoomID,
-            currTurn: state => state.Room.Turn,
-            maxTurn: state => state.Room.MaxTurn,
-            zenMode: state => state.Room.ZenMode,
-            participants: state => state.Room.Participants,
-            isStarted: state => state.Room.Started,
-            isJudge: state => state.User.IsJudge,
-            turnState: state => state.Room.TurnState,
-            isAdmin: state => state.User.IsAdmin,
-            winner: state => state.Room.Winner,
-        }),
-        getCards() {
-            return this.$store.state.User.Hand.filter((card) => card !== undefined && card !== null)
+    export default {
+        name: 'Board',
+        components: {
+            RoomSettings,
+            PlayerName,
+            Card,
+            Countdown
         },
-        getProposals() {
-            return this.$store.state.Room.Answers
-        },
-        getCardText() {
-            if (this.turnState === 0)
-                return [ 
-                    {
-                    "Question": this.currBlackCard.Text,
-                    "Class": "",
+        computed: {
+            ...mapState({
+                currBlackCard: state => state.Room.CurrentBlackCard,
+                room: state => state.Room.RoomID,
+                currTurn: state => state.Room.Turn,
+                maxTurn: state => state.Room.MaxTurn,
+                zenMode: state => state.Room.ZenMode,
+                participants: state => state.Room.Participants,
+                isStarted: state => state.Room.Started,
+                isJudge: state => state.User.IsJudge,
+                turnState: state => state.Room.TurnState,
+                isAdmin: state => state.User.IsAdmin,
+                winner: state => state.Room.Winner,
+                canWizz: state => state.CanWizz,
+            }),
+            getCards() {
+                return this.$store.state.User.Hand.filter((card) => card !== undefined && card !== null)
+            },
+            getProposals() {
+                return this.$store.state.Room.Answers
+            },
+            getCardText() {
+                if (this.turnState === 0)
+                    return [
+                        {
+                            "Question": this.currBlackCard.Text,
+                            "Class": "",
+                        }
+                    ];
+
+                let txt = this.currBlackCard.Text;
+                let txtSplitted = txt.split(/(____)/)
+                let curr = 0;
+                let values = [];
+                txtSplitted.forEach(e => {
+                    if (e === "____") {
+                        let Question = "";
+                        let winning = this.$store.state.Room.WinningAnswer;
+                        if (winning !== undefined && winning !== null) {
+                            Question = winning.Cards[curr].Text
+                        } else {
+                            Question = this.$store.state.Room.Answers[this.$store.state.Room.JudgeSelection].Cards[curr].Text
+                        }
+                        values.push({
+                            Question,
+                            Class: 'colored'
+                        })
+                        curr++
+                    } else
+                        values.push({ Question: e, Class: '' })
+                });
+
+                return values
+            },
+            isReady() {
+                return this.$store.state.Room.Participants.length >= 3
+            },
+            canReroll() {
+                return !this.isJudge && this.turnState === 0 && this.$store.state.User.RerollTimeout  === 0;
+            },
+            isPlaying() {
+                return this.$store.getters.IsPlaying;
+            },
+            getWinner() {
+                let winners = [""];
+                let winnerScore = -1;
+                this.$store.state.Room.Participants.forEach(e => {
+                    if (e.Score === winnerScore) {
+                        winners.push(e.Username);
+                        winnerScore = e.Score;
+                    } else if (e.Score > winnerScore) {
+                        winners = [e.Username];
+                        winnerScore = e.Score;
                     }
-                ];
+                })
 
-            let txt = this.currBlackCard.Text;
-            let txtSplitted = txt.split(/(____)/)
-            let curr = 0;
-            let values = [];
-            txtSplitted.forEach(e => {
-                if (e === "____") {
-                    let Question = "";
-                    let winning = this.$store.state.Room.WinningAnswer;
-                    if (winning !== undefined && winning !== null) {
-                        Question = winning.Cards[curr].Text
-                    } else {
-                        Question = this.$store.state.Room.Answers[this.$store.state.Room.JudgeSelection].Cards[curr].Text
-                    }
-                    values.push({
-                        Question,
-                        Class: 'colored'
-                    })
-                    curr++
-                } else
-                    values.push({ Question: e, Class: '' })
-            });
-
-            return values
-        },
-        isReady() {
-            return this.$store.state.Room.Participants.length >= 3
-        },
-        canReroll() {
-            return !this.isJudge && this.turnState === 0 && this.$store.state.User.RerollTimeout  === 0;
-        },
-        isPlaying() {
-            return this.$store.getters.IsPlaying;
-        },
-        getWinner() {
-            let winners = [""];
-            let winnerScore = -1;
-            this.$store.state.Room.Participants.forEach(e => {
-                if (e.Score === winnerScore) {
-                    winners.push(e.Username);
-                    winnerScore = e.Score;
-                } else if (e.Score > winnerScore) {
-                    winners = [e.Username];
-                    winnerScore = e.Score;
+                if (winnerScore === 0) {
+                    return "Personne n'a gagné !";
                 }
-            })
 
-            if (winnerScore === 0) {
-                return "Personne n'a gagné !";
+                if (winners.length === 1) {
+                    return "Le gagnant est " + winners[0] + " !";
+                }
+
+                if (winners.length === this.$store.state.Room.Participants.length) {
+                    return "Match nul !";
+                }
+
+                return "Les gagnants sont " + winners.join(", ") + " !";
             }
-
-            if (winners.length === 1) {
-                return "Le gagnant est " + winners[0] + " !";
-            }
-
-            if (winners.length === this.$store.state.Room.Participants.length) {
-                return "Match nul !";
-            }
-
-            return "Les gagnants sont " + winners.join(", ") + " !";
-        }
-    },
-    methods: {
-        skipCountdown() {
-            this.$store.dispatch('skipCountdown');
         },
-        showRules() {
-            this.$store.commit('showRules');
+        methods: {
+            skipCountdown() {
+                this.$store.dispatch('skipCountdown');
+            },
+            showRules() {
+                this.$store.commit('showRules');
+            },
+            reroll() {
+                this.$store.dispatch('reroll');
+            },
+            exit() {
+                window.location.reload();
+            },
+
+            addWizz() {
+                this.$store.dispatch('sendWizz')
+            },
         },
-        reroll() {
-          this.$store.dispatch('reroll');
-        },
-        exit() {
-            window.location.reload();
-        }
-    },
-}
+    }
 </script>
 
 <style lang="scss" scoped>
@@ -211,7 +219,7 @@ export default {
             }
 
             .gameinfo {
-                display: flex; 
+                display: flex;
                 flex-direction: column;
 
                 position: absolute;
@@ -246,12 +254,12 @@ export default {
                     display: block;
                     margin: auto;
                 }
-                
+
                 h2 {
                     text-align: center;
                     text-decoration: underline;
                 }
-                
+
                 h3 {
                     text-align: center;
                 }
@@ -314,6 +322,18 @@ export default {
         }
     }
 
+    #actions {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
+
+        button {
+            width: 3em;
+            height: 3em;
+        }
+    }
+
     @media (max-width: 900px){
         header .h1 {
             margin-left: .25em;
@@ -352,7 +372,7 @@ export default {
         }
     }
 
-        @media (max-width: 1300px){
+    @media (max-width: 1300px){
         h1 {
             font-size: 1.7em;
         }

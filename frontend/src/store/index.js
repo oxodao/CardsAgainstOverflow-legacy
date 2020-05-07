@@ -28,6 +28,8 @@ export default new Vuex.Store({
         SelectedCards: [],
         ShowLogin: true,
         ShowRules: false,
+        CanWizz: true,
+        Wizz: [],
         Websocket: null,
     },
     mutations: {
@@ -84,6 +86,15 @@ export default new Vuex.Store({
             state.Room.JudgeSelection = payload;
         },
 
+        addWizz: (state, payload) => {
+            if (!state.Wizz.includes(payload))
+                state.Wizz.push(payload)
+        },
+
+        delWizz: (state, payload) => {
+            state.Wizz = state.Wizz.filter(e => e !== payload)
+        },
+
         /**
          * Settings mutations
          */
@@ -120,6 +131,16 @@ export default new Vuex.Store({
             for (let i = 0; i < state.Room.AvailableDecks.length; i++) {
                 if (state.Room.AvailableDecks[i].ID === payload.ID) {
                     Vue.set(state.Room.AvailableDecks, i, { ...state.Room.AvailableDecks[i], IsSelected: payload.Selected })
+                }
+            }
+        },
+        canWizz: (state, payload) => {
+            state.CanWizz = payload;
+        },
+        hasPlayed: (state, payload) => {
+            for (let i = 0; i < state.Room.Participants.length; i++){
+                if (state.Room.Participants[i].Username === payload) {
+                    Vue.set(state.Room.Participants, i, { ...state.Room.Participants[i], HasPlayed: true });
                 }
             }
         }
@@ -167,14 +188,21 @@ export default new Vuex.Store({
         skipCountdown: (ctx) => {
             ctx.state.Websocket.send(JSON.stringify({
                 Command: 'SKIP_COUNTDOWN',
-                Arguments: ''
+                Arguments: '{}'
             }))
         },
         reroll: (ctx) => {
             ctx.state.Websocket.send(JSON.stringify({
                 Command: 'REROLL',
-                Arguments: ''
+                Arguments: '{}'
             }));
+        },
+        sendWizz: (ctx) => {
+            ctx.state.Websocket.send(JSON.stringify({
+                Command: 'WIZZ',
+                Arguments: '{}'
+            }))
+            ctx.commit('canWizz', false)
         }
     },
     getters: {
