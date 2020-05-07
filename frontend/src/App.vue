@@ -44,6 +44,15 @@ export default {
     height: 100vh;
   }
 
+  button {
+    display: inline-block;
+    background: #3EC480;
+    border-radius: .25em;
+    padding: .25em;
+    margin-left: 5px;
+    border: none;
+  }
+
   .wizz {
     animation: wizz .3s ease-in-out;
     animation-iteration-count: infinite;
