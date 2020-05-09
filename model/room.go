@@ -46,9 +46,19 @@ type Room struct {
 	AvailableDecks []*Deck
 }
 
+func (r *Room) HasEnoughCards() bool {
+	amtCards := 0
+	for _, c := range r.AvailableDecks {
+		if c.IsSelected {
+			amtCards = amtCards + c.AmtWhite
+		}
+	}
+	return ((len(r.Participants)+1) * 7) <= amtCards
+}
+
 // IsReady returns whether the game can start
 func (r *Room) IsReady() bool {
-	return len(r.Participants) >= 3
+	return len(r.Participants) >= 3 && r.HasEnoughCards()
 }
 
 // PickCard picks a new white card and put it in the used backlog
@@ -57,19 +67,14 @@ func (r *Room) PickCard() *Card {
 
 	// If there are no more cards, we refill
 	if amtRemaining == 0 {
-		tmpUsed := []*Card{}
-		playerCards := GetAllPlayersCardsID(r)
-
-		for _, v := range r.UsedCards {
-			// We don't take it back if someone still has it in his hand
-			if !Contains(playerCards, v.ID) {
-				r.RemainingCards = append(r.RemainingCards, v)
-			} else {
-				tmpUsed = append(tmpUsed, v)
-			}
+		// We put back all cards
+		for _, c := range r.UsedCards {
+			r.RemainingCards = append(r.RemainingCards, c)
 		}
 
-		r.UsedCards = tmpUsed
+		r.UsedCards = []*Card{}
+
+		// And we set back the remaining cards amount
 		amtRemaining = len(r.RemainingCards)
 	}
 
@@ -78,8 +83,6 @@ func (r *Room) PickCard() *Card {
 
 	r.RemainingCards[cardPicked] = r.RemainingCards[len(r.RemainingCards)-1]
 	r.RemainingCards = r.RemainingCards[:len(r.RemainingCards)-1]
-
-	r.UsedCards = append(r.UsedCards, card)
 
 	return card
 }
@@ -118,7 +121,9 @@ func GetAllPlayersCardsID(r *Room) []int64 {
 	cards := []int64{}
 	for _, p := range r.Participants {
 		for _, c := range p.Hand {
-			cards = append(cards, c.ID)
+			if c != nil {
+				cards = append(cards, c.ID)
+			}
 		}
 	}
 	return cards

@@ -6,7 +6,7 @@
         <form @submit="auth">
             <input v-model="username" id="username" type="text" name="username" placeholder="Pseudo" required/>
             <input v-model="room" id="room" type="text" name="room" placeholder="Code salle (Optionnel)"/>
-            <input type="submit" value="Rejoindre" v-on:submit="auth" />
+            <input type="submit" value="Créer / Rejoindre" v-on:submit="auth" />
         </form>
     </div>
 </template>

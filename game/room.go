@@ -58,6 +58,7 @@ func StartTurn(r *model.Room, gameStarting bool) {
 			for _, c := range GetPlayedCards(p) {
 				for i, currCard := range p.Hand {
 					if c != nil && currCard != nil && c.ID == currCard.ID {
+						r.UsedCards = append(r.UsedCards, p.Hand[i])
 						p.Hand[i] = nil
 					}
 				}

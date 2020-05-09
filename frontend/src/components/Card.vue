@@ -1,6 +1,6 @@
 <template>
     <div class="card" @click="toggleSelection(index)" v-bind:class="getClassnameIsSelected">
-        <p>{{ !isProposal ? currCard.Text : "Proposition #" + (index+1)}}</p>
+        <p :class="getClassForTextSize">{{ !isProposal ? currCard.Text : "Proposition #" + (index+1)}}</p>
         <div class="branding">
             <span v-for="t in getDeckName" :key="t">{{ t }}</span>
         </div>
@@ -53,6 +53,20 @@ export default {
             }
 
             return "Réponses".split(" ")
+        },
+        getClassForTextSize() {
+            // not seems to be working
+            if (this.isProposal) return '';
+
+            let size = this.currCard.Text.length;
+
+            if (size >= 80) {
+                return 'size2';
+            } else if (size >= 55) {
+                return 'size1';
+            }
+
+            return '';
         }
     },
     methods: {
@@ -129,6 +143,15 @@ export default {
         text-align: center;
         line-height: 2em;
 
+    }
+
+
+    .size1{
+        font-size: .8em;
+    }
+
+    .size2 {
+        font-size: .5em;
     }
 
 </style>

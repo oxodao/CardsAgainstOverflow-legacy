@@ -10,7 +10,7 @@ func FetchAllDecks() ([]*model.Deck, error) {
 	DB := GetDatabase()
 
 	var decks []*model.Deck
-	rows, err := DB.Queryx("SELECT ID, NAME FROM DECK")
+	rows, err := DB.Queryx("SELECT ID, NAME, AMT_BLACK, AMT_WHITE, SELECTED_BY_DEFAULT FROM DECK")
 	if err != nil {
 		return decks, err
 	}
@@ -18,6 +18,10 @@ func FetchAllDecks() ([]*model.Deck, error) {
 	for rows.Next() {
 		deck := &model.Deck{}
 		rows.StructScan(&deck)
+
+		if deck.SelectedByDefault {
+			deck.IsSelected = true
+		}
 
 		decks = append(decks, deck)
 	}

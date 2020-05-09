@@ -84,7 +84,7 @@ func InitializeDB(input string) error {
 
 func insertDeck(DB *sqlx.DB, deck *model.Deck) error {
 	fmt.Println("\t- Inserting deck '" + deck.Title + "'")
-	_, err := DB.Exec("INSERT INTO DECK (NAME) VALUES (?)", deck.Title)
+	_, err := DB.Exec("INSERT INTO DECK (NAME, SELECTED_BY_DEFAULT) VALUES (?, ?)", deck.Title, deck.SelectedByDefault)
 	if err != nil {
 		return err
 	}
@@ -105,6 +105,29 @@ func insertDeck(DB *sqlx.DB, deck *model.Deck) error {
 		if err != nil {
 			return err
 		}
+	}
+
+	_, err = DB.Exec(`
+		UPDATE DECK 
+		SET AMT_BLACK = (
+			SELECT SUM(c.IS_BLACK_CARD)
+			FROM Deck d
+				INNER JOIN CARD_DECK cd ON cd.DECK_ID = d.ID
+				INNER JOIN CARD c ON c.ID  = cd.CARD_ID
+			WHERE d.ID = $1
+		),
+		AMT_WHITE = (
+				SELECT COUNT(*) - SUM(c.IS_BLACK_CARD)
+				FROM Deck d
+					INNER JOIN CARD_DECK cd ON cd.DECK_ID = d.ID
+					INNER JOIN CARD c ON c.ID  = cd.CARD_ID
+				WHERE d.ID = $1
+		)
+		WHERE ID = $1
+		`, deck.ID)
+
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -139,7 +162,10 @@ func createDB(DB *sqlx.DB) error {
 	rq := `
 	CREATE TABLE DECK (
 		ID INTEGER PRIMARY KEY AUTOINCREMENT,
-		NAME VARCHAR
+		NAME VARCHAR,
+		SELECTED_BY_DEFAULT INTEGER,
+		AMT_BLACK INTEGER,
+		AMT_WHITE INTEGER
 	);
 
 	CREATE TABLE CARD (

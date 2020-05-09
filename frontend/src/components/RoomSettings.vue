@@ -1,7 +1,14 @@
 <template>
     <div id="settings">
         <ul>
-            <li v-for="deck in decks" v-bind:key="'deck'+deck.ID+deck.IsSelected"><input type="checkbox" v-bind:disabled="!IsAdmin" v-bind:checked="deck.IsSelected" v-bind:id="'cb'+deck.ID" @input="updateDeckSelection" :data-id="deck.ID"/><Label v-bind:for="'cb'+deck.ID">{{deck.Title}}</Label></li>
+            <li v-for="deck in decks" v-bind:key="'deck'+deck.ID+deck.IsSelected">
+                <input type="checkbox" v-bind:disabled="!IsAdmin" v-bind:checked="deck.IsSelected" v-bind:id="'cb'+deck.ID" @input="updateDeckSelection" :data-id="deck.ID"/>
+                <div>
+                    <Label v-bind:for="'cb'+deck.ID">{{deck.Title}}</Label>
+                    <span>{{deck.AmtWhite}} cartes blanches</span>
+                    <span>{{deck.AmtBlack}} cartes noires</span>
+                </div>
+            </li>
         </ul>
         <div id="subsettings">
             <div id="subsubsettings">
@@ -20,13 +27,20 @@
                     <input id="rerollTimeout" type="number" min="0" :disabled="!IsAdmin" :value="rerollTimeout" @input="updateReroll" />
                 </div>
             </div>
-            <button v-if="IsAdmin && isReady" @click="startGame">Démarrer</button>
+            <div id="button">
+                <div>
+                    <span id="header">Nombre de cartes totales:</span>
+                    <span>{{ AmtCards.sumWhite }} cartes blanches</span>
+                    <span>{{ AmtCards.sumBlack }} cartes noires</span>
+                </div>
+                <button :disabled="!IsAdmin || !isReady || !HasEnoughCards" @click="startGame">Démarrer</button>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
-    import {mapState} from "vuex";
+    import {mapGetters, mapState} from "vuex";
 
     export default {
         name: 'RoomSettings',
@@ -39,12 +53,14 @@
                 zenMode: state => state.Room.ZenMode,
                 countdown: state => state.Room.DefaultCountdown,
                 rerollTimeout: state => state.Room.DefaultRerollTimeout,
-
-                selectedDecks: state => state.SelectedDecks,
             }),
+            ...mapGetters([
+                'AmtCards',
+                'HasEnoughCards'
+            ]),
             isReady() {
                 return this.$store.state.Room.Participants.length >= 3
-            },
+            }
         },
         methods: {
             startGame() {
@@ -92,9 +108,28 @@
             margin: 0;
             padding: .25em;
             background: #444;
+            overflow-y: scroll;
 
             li {
+                display: flex;
+                margin-bottom: 10px;
+                padding-bottom: 5px;
                 list-style: none;
+                border-bottom: 1px solid rgba(black, .75);
+
+                div {
+                    display: flex;
+                    flex-direction: column;
+
+                    label {
+                        font-size: .8em;                       
+                    }
+
+                    span {
+                        font-size: .5em;
+                        color: darken(white, 35%);
+                    }
+                }
             }
         }
 
@@ -114,12 +149,37 @@
                 }
             }
 
-            button {
-                background: #3EC480;
-                border: none;
-                color: #111;
-                padding: 1em;
-                border-radius: 10px;
+            #button {
+                display: flex;
+                flex-direction: row;
+
+                div {
+                    display: flex;
+                    flex-direction: column;
+                    flex: 1;
+
+                    span {
+                        font-size: .5em;
+                        color: darken(white, 35%);
+                    }
+
+                    #header {
+                        font-size: .8em;
+                        color:n;
+                    }
+                }
+
+                button {
+                    background: #3EC480;
+                    border: none;
+                    color: #111;
+                    padding: 1em;
+                    border-radius: 10px;
+
+                    &:disabled {
+                        background: darken(#3EC480, 15%);
+                    }
+                }
             }
         }
 

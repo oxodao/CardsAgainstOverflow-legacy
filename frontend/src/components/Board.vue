@@ -39,11 +39,20 @@
                     {{/* For some reasons the v-else doesn't work here... */ }}
                     <h1 v-if="!currBlackCard && !isStarted " id="questionText">
                         En attente de joueurs...
-                        <template v-if="isReady"> <br /> La partie est prête </template>
+                        <template v-if="isReady && HasEnoughCards"> <br /> La partie est prête </template>
+                        <template v-else-if="isReady && !HasEnoughCards"> <br /> Pas assez de cartes dans les decks sélectionnés! </template>
                     </h1>
+                    {{
+                    /* @TODO:
+                            When a game is started and a pleyer joins the game,
+                            @HasEnoughCards
+                            Toggle the GUI to prevent players to continue if false
+                    */
+                    }}
                 </div>
                 <template>
-                    <div v-if="!isStarted || turnState === 2">
+                    <!-- Quick hack, this component will be rewritten in multiple subcomponents, ugly for now -->
+                    <div id="centerizehack" v-if="!isStarted || turnState === 2">
                         <h1 v-if="turnState === 2" class="winner">{{ winner }}</h1>
                         <RoomSettings v-if="!isStarted || (currTurn > maxTurn && !zenMode)"/>
                     </div>
@@ -55,7 +64,7 @@
                     <div v-else-if="turnState === 0 && isJudge && isReady">
                         <h3>Les joueurs jouent!</h3>
                     </div>
-                    <div v-else-if="turnState === 1 && isReady">
+                    <div v-else-if="turnState === 1 && isReady && HasEnoughCards">
                         <div id="cards">
                             <Card v-for="(card, index) in getProposals" :key="card.ID+card.isSelected" v-bind:isProposal="true" v-bind:index="index" v-bind:currCard="card" />
                         </div>
@@ -63,7 +72,6 @@
                             <button @click="skipCountdown">Voter !</button>
                         </div>
                     </div>
-
                 </template>
             </div>
             <div v-else class="game winner">
@@ -75,7 +83,7 @@
 </template>
 
 <script>
-    import {mapState} from 'vuex';
+    import {mapGetters, mapState} from 'vuex';
     import Card from './Card';
     import Countdown from './Countdown';
     import PlayerName from './PlayerName';
@@ -104,6 +112,9 @@
                 winner: state => state.Room.Winner,
                 canWizz: state => state.CanWizz,
             }),
+            ...mapGetters([
+                'HasEnoughCards'
+            ]),
             getCards() {
                 return this.$store.state.User.Hand.filter((card) => card !== undefined && card !== null)
             },
@@ -203,6 +214,7 @@
 
 <style lang="scss" scoped>
     #board {
+        width: 100%;
         height: 100%;
         display: flex;
         flex-direction: column;
@@ -389,5 +401,13 @@
         position: absolute;
         top: 1em;
         left: 1em;
+    }
+
+
+    #centerizehack {
+        display: flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
     }
 </style>

@@ -23,7 +23,6 @@ export default {
     ],
     computed: {
         isMe() {
-            console.log(this.username, this.$store.state.User.Username, this.username === this.$store.state.User.Username)
             return this.username === this.$store.state.User.Username ? "isMe" : ""
         },
         isWizzing() {

@@ -66,6 +66,7 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 func GenerateNewRoom(client *model.User) *model.Room {
 	newID, _ := gonanoid.Generate("abcdefghijklmnopqrstuvwxyz0123456789", 6)
 	decks, _ := dal.FetchAllDecks()
+
 	r := &model.Room{
 		RoomID:       strings.ToUpper(newID),
 		Participants: []*model.User{},

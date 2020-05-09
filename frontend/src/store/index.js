@@ -24,6 +24,7 @@ export default new Vuex.Store({
             DefaultCountdown: 80,
             DefaultRerollTimeout: 6,
             AvailableDecks: [],
+            SelectedDecks: [],
         },
         SelectedCards: [],
         ShowLogin: true,
@@ -209,5 +210,23 @@ export default new Vuex.Store({
         IsPlayerJudge: state => state.User.IsJudge,
         IsPlayerAdmin: state => state.User.IsAdmin,
         IsPlaying: state => (state.Room.ZenMode || state.Room.Turn <= state.Room.MaxTurn),
+        AmtCards: state => {
+            let sumBlack = 0;
+            let sumWhite = 0;
+
+            let decks = state.Room.AvailableDecks;
+
+            for (let i = 0; i < decks.length; i++) {
+                if (decks[i].IsSelected) {
+                    sumBlack += decks[i].AmtBlack;
+                    sumWhite += decks[i].AmtWhite;
+                }
+            }
+
+            return { sumBlack, sumWhite };
+        },
+        HasEnoughCards: (state, getters) => {
+            return getters.AmtCards.sumWhite >= ((state.Room.Participants.length+1) * 7)
+        }
     }
 })
