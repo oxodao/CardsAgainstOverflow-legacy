@@ -72,7 +72,7 @@ func GenerateNewRoom(client *model.User) *model.Room {
 		Started:      false,
 		MaxTurn:      10,
 		AvailableDecks: decks,
-		DefaultRerollTimeout: 6,
+		DefaultRerollTimeout: 4,
 		DefaultCountdown: 80,
 	}
 

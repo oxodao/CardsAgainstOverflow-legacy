@@ -60,25 +60,25 @@ export default {
 
   @keyframes wizz {
     0% {
-      transform: translateX(-3vw) rotate(-5deg);
+      transform: translateX(-1vw) rotate(-2deg);
     }
     15% {
-      transform: translateX(3vw) rotate(0deg);
+      transform: translateX(1vw) rotate(0deg);
     }
     30% {
-      transform: translateX(-3vw) rotate(5deg);
+      transform: translateX(-1vw) rotate(2deg);
     }
     45% {
-      transform: translateX(3vw) rotate(0deg);
+      transform: translateX(1vw) rotate(0deg);
     }
     60% {
-      transform: translateX(-3vw) rotate(-5deg);
+      transform: translateX(-1vw) rotate(-2deg);
     }
     75% {
-      transform: translateX(3vw) rotate(0deg);
+      transform: translateX(1vw) rotate(0deg);
     }
     90% {
-      transform: translateX(-3vw) rotate(5deg);
+      transform: translateX(-1vw) rotate(2deg);
     }
     100% {
       transform: translateX(0) rotate(0deg);

@@ -17,7 +17,7 @@
             <p>À chaque tour, un joueur est désigné <img class="mini-icon" src="../assets/gavel.png"/> Juge . Il va lire à haute voix la carte à trou.</p>
             <p>Chacun des joueurs va ensuite compléter avec les cartes qu'il possède dans son jeu et tenter de faire la combinaison la plus drôle.</p>
             <p>Le juge va ensuite lire chaque proposition à haute voix et choisir celle qu'il considère la plus drôle.</p>
-            <p>Si un joueur n'aime pas sa main, il peut décider d'effectuer un "Re-roll" une fois tout les 6 tours (personnalisable). Il va alors abadonner toutes ses cartes et en repiocher.</p>
+            <p>Si un joueur n'aime pas sa main, il peut décider d'effectuer un "Re-roll" une fois tout les 4 tours (personnalisable). Il va alors abadonner toutes ses cartes et en repiocher.</p>
         </div>
         <div id="rules-content" v-else-if="usage">
             <h2>Utilisation du site</h2>
@@ -32,7 +32,7 @@
             <p>Ce jeu n'est pas conçu pour être joué sur mobile mais uniquement sur ordinateur.</p>
             <p>Testé et fonctionnel dans Firefox et Google Chrome.</p>
             <br />
-            <p>Si vous trouvez une faille, n'hésitez pas à me contacter pour me l'expliquer afin que je puisse la corriger.</p>
+            <p>Si vous trouvez un problème, n'hésitez pas à me contacter pour me l'expliquer afin que je puisse la corriger.</p>
             <p>Si vous me connaissez, contactez moi par votre moyen habituel sinon n'hésitez pas à m'envoyer un email à <a href="mailto:nathan@janczewski.fr">nathan@janczewski.fr</a></p>
         </div>
         <div id="closeBt" @click="close">X</div>

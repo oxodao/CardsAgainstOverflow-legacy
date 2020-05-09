@@ -2,9 +2,7 @@
     <div class="card" @click="toggleSelection(index)" v-bind:class="getClassnameIsSelected">
         <p>{{ !isProposal ? currCard.Text : "Proposition #" + (index+1)}}</p>
         <div class="branding">
-            <span>Cards</span>
-            <span>Against</span>
-            <span>Overflow</span>
+            <span v-for="t in getDeckName" :key="t">{{ t }}</span>
         </div>
         <div v-if="showPosition && !isProposal" id="position">
             {{ getSelectedPosition }}
@@ -45,6 +43,16 @@ export default {
                 return false
 
             return this.$store.state.Room.CurrentBlackCard.AmtCardRequired > 1 && this.$store.state.SelectedCards.includes(this.index)
+        },
+        getDeckName() {
+            let decks = this.$store.state.Room.AvailableDecks
+            for (let i = 0; i < decks.length; i++) {
+                if (decks[i].ID === this.currCard.Deck) {
+                    return decks[i].Title.split(" ")
+                }
+            }
+
+            return "Réponses".split(" ")
         }
     },
     methods: {

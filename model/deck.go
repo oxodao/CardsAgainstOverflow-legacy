@@ -6,4 +6,5 @@ type Deck struct {
 	Cards      []*Card `json:"Cards"`
 	BlackCards []*Card `json:"BlackCards"`
 	IsSelected bool    `json:"IsSelected" db:"-"`
+	SelectedByDefault bool
 }

@@ -92,12 +92,11 @@ func FetchCardsForDeck(DB *sqlx.DB, deck int64, isBlack bool) ([]*model.Card, er
 	}
 
 	rows, err := DB.Queryx(`
-	SELECT ID, TEXT
-	FROM CARD
-	WHERE ID IN (
-		SELECT CARD_ID FROM CARD_DECK WHERE DECK_ID = ?
-	)
-	AND IS_BLACK_CARD = ?`, deck, i)
+	SELECT c.ID, c.TEXT, cd.DECK_ID as DECK
+	FROM CARD c
+		INNER JOIN CARD_DECK cd ON c.ID = cd.CARD_ID
+	WHERE cd.DECK_ID = ?
+		AND c.IS_BLACK_CARD = ?`, deck, i)
 	if err != nil {
 		return cards, err
 	}
