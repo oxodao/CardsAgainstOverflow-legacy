@@ -4,6 +4,7 @@ import (
 	"github.com/oxodao/cardsagainstoverflow/dal"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -15,6 +16,7 @@ import (
 
 func ConnectUser(conn *websocket.Conn, params url.Values) {
 	client := &model.User{
+		MutexWS: &sync.Mutex{},
 		Connection: conn,
 		Username:   params["username"][0],
 		Room:       nil,

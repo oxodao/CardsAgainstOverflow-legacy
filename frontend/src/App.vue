@@ -35,6 +35,10 @@ export default {
     remWiz(user) {
       this.$store.commit('delWizz', user)
     }
+  },
+  mounted: function() {
+    //document.documentElement.requestFullscreen();
+    screen.orientation.lock("landscape")
   }
 }
 </script>
@@ -84,5 +88,12 @@ export default {
     100% {
       transform: translateX(0) rotate(0deg);
     }
+  }
+
+  .tooltip {
+    padding: .25em;
+    margin: 1em;
+    border-radius: 5px;
+    background: rgba(10, 10, 10, .75);
   }
 </style>

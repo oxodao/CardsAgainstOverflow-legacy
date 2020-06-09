@@ -1,6 +1,7 @@
 package model
 
 import (
+	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -21,6 +22,7 @@ type User struct {
 	IsJudge       bool
 	SelectedCards []int `json:"-"`
 
+	MutexWS *sync.Mutex
 	Connection *websocket.Conn `json:"-"`
 	LastPing   time.Time       `json:"-"`
 }

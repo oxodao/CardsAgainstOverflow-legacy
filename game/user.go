@@ -92,10 +92,12 @@ func SendCommand(u *model.User, command string, payload interface{}) error {
 		return err
 	}
 
+	u.MutexWS.Lock()
 	err = u.Connection.WriteJSON(model.Command{
 		Command:   command,
 		Arguments: string(content),
 	})
+	u.MutexWS.Unlock()
 
 	return err
 }

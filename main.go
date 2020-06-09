@@ -39,14 +39,10 @@ func main() {
 	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
 		conn, err := websocket.Upgrade(w, r, nil, 1024, 1024)
 		if err != nil {
-			fmt.Println("Can't upgrade connection for this client")
-			fmt.Println(err)
-
 			return
 		}
 
 		params, _ := url.ParseQuery(r.URL.RawQuery)
-
 		ConnectUser(conn, params)
 	})
 
@@ -55,11 +51,12 @@ func main() {
 		maxDelay, _ := time.ParseDuration("-30s")
 
 		for {
-			for i := range game.Rooms {
-				for p := range game.Rooms[i].Participants {
-					client := game.Rooms[i].Participants[p]
-					if client.LastPing.Before(time.Now().Add(maxDelay)) {
-						game.Kick(client, "Timed out.")
+			for _, r := range game.Rooms {
+				if r != nil {
+					for _, p := range r.Participants {
+						if p != nil && p.LastPing.Before(time.Now().Add(maxDelay)) {
+							game.Kick(p, "Timed out.")
+						}
 					}
 				}
 			}

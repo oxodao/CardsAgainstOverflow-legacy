@@ -84,6 +84,7 @@ export default {
 <style lang="scss" scoped>
     /** Stolen from https://designshack.net/tutorialexamples/cardtricks/index.html */
     .card {
+        user-select: none;
         box-sizing: border-box;
         width: 130px;
         height: 200px;

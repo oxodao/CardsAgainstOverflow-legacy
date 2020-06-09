@@ -21,8 +21,8 @@
                 </ul>
 
                 <div id="actions">
-                    <button :disabled="!canWizz" @click="addWizz"><img src="../assets/msn_wizz.png" alt="wizz"/></button>
-                    <button v-if="isStarted" :disabled="!canReroll" @click="reroll"><img src="../assets/reroll.png" alt="Reroll"/></button>
+                    <button :disabled="!canWizz" @click="addWizz" v-tooltip="'Wizz'"><img src="../assets/msn_wizz.png" alt="wizz"/></button>
+                    <button v-if="isStarted" :disabled="!canReroll" @click="reroll" v-tooltip="'Re-piocher'"><img src="../assets/reroll.png" alt="Reroll"/></button>
                 </div>
                 <h3 v-if="isStarted && currTurn <= maxTurn && !zenMode">Tour: {{currTurn}} / {{maxTurn}}</h3>
                 <h3 v-else-if="isStarted && (zenMode || currTurn <= maxTurn)">Tour: {{currTurn}}</h3>
