@@ -44,6 +44,18 @@ export default {
 </script>
 
 <style>
+  body {
+    padding: 0;
+    margin: 0;
+    font-family: Helvetica, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-weight: bold;
+
+    background: #222;
+    color: #fff;
+  }
+
   #app {
     width: 100vw;
     height: 100vh;

@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"flag"
 	"fmt"
+	"github.com/markbates/pkger"
 	"math/rand"
 	"net/http"
 	"net/url"
@@ -45,6 +46,8 @@ func main() {
 		params, _ := url.ParseQuery(r.URL.RawQuery)
 		ConnectUser(conn, params)
 	})
+
+	http.Handle("/", http.FileServer(pkger.Dir("/data")))
 
 	// Disconnecting old players
 	go func() {

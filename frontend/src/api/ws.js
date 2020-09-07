@@ -3,12 +3,10 @@ export function connect(e) {
     let toasted = this.$toasted;
     e.preventDefault();
 
-    let url = ""
-    //if (process.env.NODE_ENV === "development") {
+    let url = location.host;
+
+    if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development')
         url = "localhost:8000"
-    //} else {
-        //url = "cao-api.oxodao.fr"
-    //}
 
     let ws = new WebSocket("ws://"+url+"/api?username=" + this.username + "&room=" + this.room)
     ws.onmessage = (e) => parseMessage(store, toasted, e.data);
