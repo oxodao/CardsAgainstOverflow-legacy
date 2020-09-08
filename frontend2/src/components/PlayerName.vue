@@ -19,8 +19,7 @@
         ],
         computed: {
             isMe() {
-                return ''
-                //return this.player.Username === this.$store.state.User.Username ? "isMe" : ""
+                return this.player.Username === this.$store.state.User.Username ? "isMe" : ""
             },
             isWizzing() {
                 return this.$store.state.UI.Wizz.includes(this.player.Username);

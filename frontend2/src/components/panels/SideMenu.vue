@@ -1,5 +1,5 @@
 <template>
-    <nav>
+    <nav :class="MenuVisible ? 'visible' : ''">
         <img src="../../assets/logo.png" alt="Logo"/>
 
         <button id="endgame">Quitter la partie</button>
@@ -31,12 +31,33 @@
         computed: {
             ...mapState({
                 participants: state => state.Room.Participants,
-                canWizz: state => state.CanWizz,
+                canWizz: state => state.UI.CanWizz,
                 currTurn: state => state.Room.Turn,
                 maxTurn: state => state.Room.MaxTurn,
                 zenMode: state => state.Room.ZenMode,
                 isStarted: state => state.Room.Started,
+                MenuVisible: state => state.UI.MenuVisible,
             }),
+            canReroll() {
+                return !this.isJudge && this.turnState === 0 && this.$store.state.User.RerollTimeout  === 0;
+            },
+        },
+        methods: {
+            reroll() {
+                this.$store.dispatch('reroll');
+            },
+            addWizz() {
+                this.$store.dispatch('sendWizz')
+            },
+        },
+        mounted() {
+            document.addEventListener('resize', () => {
+                console.log("resize", this.$store.UI.MenuVisible)
+                let w = document.documentElement.clientWidth;
+                if (this.$store.UI.MenuVisible && w > 650) {
+                    this.$store.commit('toggleMenu');
+                }
+            })
         }
     }
 </script>
@@ -47,8 +68,23 @@
         background: #111;
         display: flex;
         flex-direction: column;
+        align-items: center;
+
+        @media(max-width: 650px) {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            bottom: 0;
+
+            transition: left .25s linear;
+
+            &.visible {
+                left: 0;
+            }
+        }
 
         img {
+            text-align: center;
             width: 215px;
         }
 

@@ -3,6 +3,16 @@
         <Header />
         <div id="inner-game">
             <SideMenu />
+            <div id="board">
+                <GameStatus />
+                <RoomSettings v-if="!Started" />
+                <template v-else>
+                    <BlackCard />
+                    <Deck />
+                </template>
+
+                <Countdown />
+            </div>
         </div>
     </div>
 </template>
@@ -10,11 +20,21 @@
 <script>
     import SideMenu from "../components/panels/SideMenu";
     import Header from "../components/panels/Header";
+    import GameStatus from "../components/GameStatus";
+    import RoomSettings from "../components/panels/RoomSettings";
+    import Countdown from "../components/Countdown";
+    import {mapState} from "vuex";
+    import BlackCard from "../components/BlackCard";
+    import Deck from "../components/Deck";
 
     export default {
         name: "Board",
-        components: {Header, SideMenu},
-
+        components: {Deck, BlackCard, Countdown, RoomSettings, GameStatus, Header, SideMenu},
+        computed: {
+            ...mapState({
+                Started: state => state.Room.Started,
+            })
+        }
     }
 </script>
 
@@ -29,6 +49,19 @@
             flex: 1;
             display: flex;
             flex-direction: row;
+
+            #board {
+                flex: 1;
+
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: space-around;
+
+                @media (max-width: 650px) {
+                    max-width: 100%;
+                }
+            }
         }
     }
 </style>

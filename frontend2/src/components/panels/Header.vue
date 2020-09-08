@@ -1,5 +1,6 @@
 <template>
     <header>
+        <button @click="toggleMenu"><img src="../../assets/menu.png" alt="Menu" /></button>
         <h1 id="game-title">Cards Against Overflow</h1>
 
         <div>
@@ -17,6 +18,14 @@
             ...mapState({
                 RoomID: state => state.Room.RoomID,
             })
+        },
+        methods: {
+            toggleMenu(e) {
+                e.stopPropagation();
+                this.$store.commit('toggleMenu')
+
+                return false;
+            }
         }
     }
 </script>
@@ -26,6 +35,25 @@
         position: relative;
         background: #111;
         text-align: center;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        button {
+            @media (min-width: 651px) {
+                display: none;
+            }
+
+            width: 34px;
+            height: 34px;
+
+            img {
+                width: 24px;
+                height: 24px;
+            }
+
+            padding: 5px;
+        }
 
         div {
             position: absolute;
@@ -49,10 +77,12 @@
 
     #game-title {
         font-size: 1.5em;
+        flex: 1;
 
         @media (max-width: 650px) {
             font-size: 1.2em;
             text-align: left;
+            margin-left: .5em;
         }
     }
 </style>

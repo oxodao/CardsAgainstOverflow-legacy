@@ -7,7 +7,8 @@ export function connect(e) {
     let url = location.host;
 
     if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development')
-        url = "localhost:8000"
+        url = "192.168.1.12:8000"
+        //url = "localhost:8000"
 
     let ws = new WebSocket("ws://"+url+"/api?username=" + this.username + "&room=" + this.room)
     ws.onmessage = (e) => parseMessage(store, toasted, e.data);
