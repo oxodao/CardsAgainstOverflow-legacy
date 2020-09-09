@@ -38,7 +38,7 @@
             getSelectedPosition() {
                 let state = this.$store.state;
                 if (state.Room.TurnState === 0) {
-                    return state.SelectedCards.indexOf(this.card) + 1;
+                    return state.UI.SelectedCards.indexOf(this.Index) + 1;
                 }
 
                 return state.Room.JudgeSelection

@@ -2,7 +2,7 @@
     <nav :class="MenuVisible ? 'visible' : ''">
         <img src="../../assets/logo.png" alt="Logo"/>
 
-        <button id="endgame">Quitter la partie</button>
+        <button id="endgame" @click="exit">Quitter la partie</button>
 
         <h2>Joueurs</h2>
 
@@ -39,7 +39,8 @@
                 MenuVisible: state => state.UI.MenuVisible,
             }),
             canReroll() {
-                return !this.isJudge && this.turnState === 0 && this.$store.state.User.RerollTimeout  === 0;
+                let state = this.$store.state;
+                return !state.User.IsJudge && state.Room.TurnState === 0 && state.User.RerollTimeout  === 0;
             },
         },
         methods: {
@@ -49,6 +50,9 @@
             addWizz() {
                 this.$store.dispatch('sendWizz')
             },
+            exit() {
+                window.location.reload();
+            }
         },
         mounted() {
             document.addEventListener('resize', () => {

@@ -81,6 +81,13 @@ export default {
             }));
             commit('canWizz', false)
         },
+        reroll: (ctx) => {
+            console.log("reroll")
+            ctx.state.WebSocket.send(JSON.stringify({
+                Command: 'REROLL',
+                Arguments: '{}'
+            }));
+        },
         select: ({rootState, commit, dispatch}, payload) => {
             commit('toggleSelection', {AmtCardsRequired: rootState.Room.CurrentBlackCard.AmtCardRequired, payload});
             dispatch('sendSelection');
