@@ -1,10 +1,10 @@
 <template>
-    <div :class="'card ' + getClassnameIsSelected">
-        <p :class="getClassForTextSize">{{ !IsProposal ? card.Text : "Proposition #" + (index+i)}}</p>
+    <div :class="'card ' + getClassnameIsSelected" @click="toggleSelection">
+        <p :class="getClassForTextSize(IsProposal)">{{ IsProposal ? "Proposition #" + (Index+1) : card.Text }}</p>
         <div class="branding">
             <span v-for="t in getDeckName" :key="t">{{ t }}</span>
         </div>
-        <div v-if="showPosition && !isProposal" id="position">
+        <div v-if="showPosition && !IsProposal" id="position">
             {{ getSelectedPosition }}
         </div>
     </div>
@@ -13,47 +13,35 @@
 <script>
     export default {
         name: "Card",
-        props: [
-            'card',
-            'index',
-            'IsProposal',
-        ],
+        props: {
+            card: Object,
+            Index: Number,
+            IsProposal: Boolean,
+        },
         computed: {
             getClassnameIsSelected() {
                 let state = this.$store.state;
                 if (state.Room.TurnState === 0) {
-                    return state.UI.SelectedCards.includes(this.index) ? "isSelected" : "";
+                    return state.UI.SelectedCards.includes(this.Index) ? "isSelected" : "";
                 }
 
-                return state.Room.JudgeSelection === this.index ? "isSelected" : "";
+                return state.Room.JudgeSelection === this.Index ? "isSelected" : "";
             },
-            getClassForTextSize() {
-                // not seems to be working
-                if (this.isProposal) return '';
 
-                let size = this.card.Text.length;
-
-                if (size >= 80) {
-                    return 'size2';
-                } else if (size >= 55) {
-                    return 'size1';
-                }
-
-                return '';
-            },
             showPosition() {
                 let state = this.$store.state;
                 if (state.Room.TurnState !== 0 || state.User.IsJudge)
                     return false
 
-                return state.Room.CurrentBlackCard.AmtCardRequired > 1 && this.$store.state.SelectedCards.includes(this.index)
+                return state.Room.CurrentBlackCard.AmtCardRequired > 1 && state.UI.SelectedCards.includes(this.Index)
             },
             getSelectedPosition() {
-                if (this.$store.state.Room.TurnState === 0) {
-                    return this.$store.state.SelectedCards.indexOf(this.card) + 1;
+                let state = this.$store.state;
+                if (state.Room.TurnState === 0) {
+                    return state.SelectedCards.indexOf(this.card) + 1;
                 }
 
-                return this.$store.state.Room.JudgeSelection
+                return state.Room.JudgeSelection
             },
             getDeckName() {
                 let decks = this.$store.state.Room.AvailableDecks;
@@ -65,6 +53,29 @@
                 }
 
                 return ["Réponses"];
+            },
+        },
+        methods: {
+            toggleSelection: function() {
+                let state = this.$store.state;
+                if (state.Room.TurnState === 0) {
+                    this.$store.dispatch('select', this.Index)
+                } else if (state.User.IsJudge && state.Room.TurnState === 1) {
+                    this.$store.dispatch('selectProposal', this.Index)
+                }
+            },
+            getClassForTextSize() {
+                if (this.IsProposal) return '';
+
+                let size = this.card.Text.length || '';
+
+                if (size >= 80) {
+                    return 'size2';
+                } else if (size >= 55) {
+                    return 'size1';
+                }
+
+                return '';
             },
         }
     }

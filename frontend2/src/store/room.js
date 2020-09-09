@@ -23,6 +23,18 @@ export default {
             Object.assign(state, payload.Room);
         },
 
+        HAS_PLAYED: (state, payload) => {
+            for (let i = 0; i < state.Participants.length; i++){
+                if (state.Participants[i].Username === payload) {
+                    Vue.set(state.Participants, i, { ...state.Participants[i], HasPlayed: true });
+                }
+            }
+        },
+
+        JUDGE_SELECTION: (state, payload) => {
+            state.JudgeSelection = payload;
+        },
+
         /**
          * Settings mutations
          */

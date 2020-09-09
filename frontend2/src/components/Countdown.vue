@@ -1,15 +1,22 @@
 <template>
-    <div>
+    <div v-if="countdown > 0 && IsReady">
         {{ countdown }}
     </div>
 </template>
 
 <script>
-    import {mapState} from "vuex";
+    import {mapGetters, mapState} from "vuex";
 
     export default {
         name: "Countdown",
-        computed: mapState({ countdown: state => state.UI.CurrentCountdown })
+        computed: {
+            ...mapState({
+                         countdown: state => state.UI.CurrentCountdown
+            }),
+            ...mapGetters([
+                'IsReady'
+            ])
+        }
     }
 </script>
 

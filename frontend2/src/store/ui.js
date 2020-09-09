@@ -1,3 +1,5 @@
+import Vue from 'vue';
+
 export default {
     state: () => ({
         MenuVisible: false,
@@ -24,6 +26,7 @@ export default {
 
         SET_GAMESTATE: (state) => {
             state.LoggedIn = true;
+            state.SelectedCards = [];
         },
 
         WIZZ: (state, payload) => {
@@ -42,6 +45,33 @@ export default {
         COUNTDOWN: (state, payload) => {
             state.CurrentCountdown = payload;
         },
+
+        toggleSelection: (state, { AmtCardsRequired, payload }) => {
+            // If we have only one card, no need to do weird things, just switching the current one
+            if (AmtCardsRequired === 1) {
+                if (state.SelectedCards.includes(payload)) {
+                    state.SelectedCards = [];
+                } else {
+                    state.SelectedCards = [payload];
+                }
+                return
+            }
+
+            if (state.SelectedCards.includes(payload)) {
+                Vue.set(state.SelectedCards, state.SelectedCards.indexOf(payload), -1);
+                //state.User.Hand.isSelected = false;
+            } else if (AmtCardsRequired > (state.SelectedCards.filter(e => e !== -1).length)) {
+                if (state.SelectedCards.includes(-1)) {
+                    Vue.set(state.SelectedCards, state.SelectedCards.indexOf(-1), payload);
+                } else {
+                    state.SelectedCards.push(payload);
+                }
+                //state.User.Hand.isSelected = true;
+            }
+        },
+        toggleProposalSelection: (state, payload) => {
+            state.SelectedCards = [payload];
+        },
     },
     actions: {
         sendWizz: ({state, commit}) => {
@@ -50,7 +80,35 @@ export default {
                 Arguments: '{}'
             }));
             commit('canWizz', false)
-        }
+        },
+        select: ({rootState, commit, dispatch}, payload) => {
+            commit('toggleSelection', {AmtCardsRequired: rootState.Room.CurrentBlackCard.AmtCardRequired, payload});
+            dispatch('sendSelection');
+        },
+        selectProposal: (ctx, payload) => {
+            ctx.commit('toggleProposalSelection', payload);
+            ctx.dispatch('sendSelection');
+        },
+        sendSelection: ({rootState, state}) => {
+            /** @TODO: Rendondant? **/
+            if (rootState.User.IsJudge) {
+                state.WebSocket.send(JSON.stringify({
+                    Command: 'SEND_SELECTION',
+                    Arguments: JSON.stringify(state.SelectedCards),
+                }))
+            } else {
+                state.WebSocket.send(JSON.stringify({
+                    Command: 'SEND_SELECTION',
+                    Arguments: JSON.stringify(state.SelectedCards),
+                }))
+            }
+        },
+        skipCountdown: (ctx) => {
+            ctx.state.WebSocket.send(JSON.stringify({
+                Command: 'SKIP_COUNTDOWN',
+                Arguments: '{}'
+            }))
+        },
     },
     getters: {
         DisplayWizz: state => state.Wizz.length > 0 ? "wizz" : "",

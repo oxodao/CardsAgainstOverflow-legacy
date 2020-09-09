@@ -9,6 +9,7 @@
                 <template v-else>
                     <BlackCard />
                     <Deck />
+                    <button v-if="TurnState === 1 && IsJudge" @click="sendProposalSelection">Valider</button>
                 </template>
 
                 <Countdown />
@@ -33,7 +34,14 @@
         computed: {
             ...mapState({
                 Started: state => state.Room.Started,
+                IsJudge: state => state.User.IsJudge,
+                TurnState: state => state.Room.TurnState,
             })
+        },
+        methods: {
+            sendProposalSelection() {
+                this.$store.dispatch('skipCountdown');
+            }
         }
     }
 </script>
@@ -57,6 +65,10 @@
                 flex-direction: column;
                 align-items: center;
                 justify-content: space-around;
+
+                > button {
+                    padding: 1em;
+                }
 
                 @media (max-width: 650px) {
                     max-width: 100%;

@@ -69,6 +69,7 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        z-index: 999999999;
 
         @media(max-width: 650px) {
             position: absolute;

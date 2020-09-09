@@ -1,6 +1,6 @@
 <template>
-    <div id="hand" v-if="(TurnState === 0 || IsJudge) && IsReady">
-        <Card v-for="(card, index) in (IsJudge ? Proposal : Cards)" :key="card.ID+card.isSelected" v-bind:isProposal="TurnState === 1" v-bind:index="index" v-bind:card="card"/>
+    <div id="hand" v-if="(TurnState === 0 || TurnState === 1) && IsReady">
+        <Card v-for="(card, index) in ((IsJudge || TurnState === 1) ? Proposal : Cards)" :key="card.ID+card.isSelected" v-bind:IsProposal="IsJudge || TurnState === 1" v-bind:Index="index" v-bind:card="card"/>
     </div>
 </template>
 
@@ -31,7 +31,8 @@
 
     #hand {
         display: flex;
-        height: calc(200px * 1.05); // 200px = height 1 card + 0.05 for the scale animation
+        width: 100%;
+        height: 280px;
         flex-direction: row;
         flex-wrap: nowrap;
         overflow: auto;
