@@ -47,6 +47,16 @@ func main() {
 		ConnectUser(conn, params)
 	})
 
+	http.HandleFunc("/deporte", func(w http.ResponseWriter, r *http.Request) {
+		conn, err := websocket.Upgrade(w, r, nil, 1024, 1024)
+		if err != nil {
+			return
+		}
+
+		params, _ := url.ParseQuery(r.URL.RawQuery)
+		ConnectDeporte(conn, params)
+	})
+
 	http.Handle("/", http.FileServer(pkger.Dir("/data")))
 
 	// Disconnecting old players

@@ -20,6 +20,7 @@ const TurnStateShowWinner TurnState = 2
 type Room struct {
 	RoomID           string
 	Participants     []*User
+	Displays         []*Display `json:"-"`
 	ZenMode          bool
 	Turn             int
 	MaxTurn          int

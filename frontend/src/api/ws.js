@@ -3,7 +3,6 @@ export function connect(e) {
     let toasted = this.$toasted;
     let deporte = this.affichageDeporte.length > 0;
 
-    console.log("DEPORTE: ", deporte);
     store.commit('setDeporte', deporte);
 
     e.preventDefault();

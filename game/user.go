@@ -38,6 +38,25 @@ func Receive(u *model.User) {
 	}
 }
 
+func ReceiveDisplay(d *model.Display) {
+	for {
+		_, msg, err := d.Connection.ReadMessage()
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+
+		cmd := model.Command{}
+		err = json.Unmarshal(msg, &cmd)
+		if err != nil {
+			fmt.Println(err)
+			break
+		}
+
+		ExecuteDisplayCommand(d, cmd)
+	}
+}
+
 // ExecuteCommand parses and execute a command sent by a user
 func ExecuteCommand(u *model.User, cmd model.Command) {
 	switch cmd.Command {
@@ -85,6 +104,16 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 	}
 }
 
+// ExecuteDisplayCommand parses and execute a command sent by a user
+func ExecuteDisplayCommand(d *model.Display, cmd model.Command) {
+	switch cmd.Command {
+	case "PING":
+		d.LastPing = time.Now()
+		break
+
+	}
+}
+
 // SendCommand sends a command to a user
 func SendCommand(u *model.User, command string, payload interface{}) error {
 	content, err := json.Marshal(payload)
@@ -98,6 +127,23 @@ func SendCommand(u *model.User, command string, payload interface{}) error {
 		Arguments: string(content),
 	})
 	u.MutexWS.Unlock()
+
+	return err
+}
+
+// SendCommand sends a command to a user
+func SendDisplayCommand(d *model.Display, command string, payload interface{}) error {
+	content, err := json.Marshal(payload)
+	if err != nil {
+		return err
+	}
+
+	d.MutexWS.Lock()
+	err = d.Connection.WriteJSON(model.Command{
+		Command:   command,
+		Arguments: string(content),
+	})
+	d.MutexWS.Unlock()
 
 	return err
 }

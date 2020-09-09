@@ -64,6 +64,38 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 	})
 }
 
+func ConnectDeporte(conn *websocket.Conn, params url.Values) {
+	display := &model.Display{
+		MutexWS: &sync.Mutex{},
+		Connection: conn,
+		LastPing: time.Now(),
+
+	}
+
+	for i := range game.Rooms {
+		if game.Rooms[i].RoomID == params["room"][0] {
+			game.JoinDisplay(display, game.Rooms[i])
+			break
+		}
+	}
+
+	if (display.Room) == nil {
+		game.SendDisplayCommand(display, model.CommandCriticalError, "Salle inexistante")
+		conn.Close()
+		return
+	}
+
+	gs := dto.GameState(display.Room)
+	game.SendDisplayCommand(display, model.CommandSetGamestate, gs)
+
+	go game.ReceiveDisplay(display)
+
+	conn.SetCloseHandler(func(code int, text string) error {
+		game.DisplayQuitRoom(display, "Bye-bye")
+		return nil
+	})
+}
+
 // GenerateNewRoom create a room and set the default parameters
 func GenerateNewRoom(client *model.User) *model.Room {
 	newID, _ := gonanoid.Generate("abcdefghijklmnopqrstuvwxyz0123456789", 6)

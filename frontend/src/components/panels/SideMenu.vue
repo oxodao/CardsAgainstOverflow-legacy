@@ -57,7 +57,6 @@
         },
         mounted() {
             document.addEventListener('resize', () => {
-                console.log("resize", this.$store.UI.MenuVisible)
                 let w = document.documentElement.clientWidth;
                 if (this.$store.UI.MenuVisible && w > 650) {
                     this.$store.commit('toggleMenu');

@@ -178,8 +178,18 @@ func Join(u *model.User, r *model.Room) {
 	Log(r, u.Username+" has joined the room.")
 }
 
+// JoinDisplay is triggered when someone joins the room
+func JoinDisplay(d *model.Display, r *model.Room) {
+	d.Room = r
+	r.Displays = append(r.Displays, d)
+
+	SendGamestateAll(r)
+
+	Log(r, "A display joined the room")
+}
+
 func QuitRoom(u *model.User, reason string) {
-	Log(u.Room, u.Username+" has left the room.")
+	Log(u.Room, u.Username+" has left the room (" + reason + ").")
 
 	// Setting the next player as the current player
 	// If the user was admin, setting the next player as admin
@@ -240,6 +250,10 @@ func QuitRoom(u *model.User, reason string) {
 
 		if index >= 0 {
 			Log(room, "Removing the room, no one is inside.")
+			for _, d := range room.Displays {
+				DisplayQuitRoom(d, "Nobody's in this room")
+			}
+
 			Rooms = append(Rooms[:index], Rooms[index+1:]...)
 		}
 	}
@@ -247,6 +261,25 @@ func QuitRoom(u *model.User, reason string) {
 	u.Connection.Close()
 
 	SendGamestateAll(room)
+}
+
+func DisplayQuitRoom(d *model.Display, reason string) {
+	Log(d.Room, "A display has left the room (" + reason + ").")
+	room := d.Room
+	index := -1
+
+	for i, dIteration := range room.Displays {
+		if d == dIteration {
+			index = i
+		}
+	}
+
+	if index != -1 {
+		room.Displays = append(room.Displays[:index], room.Displays[index+1:]...)
+		d.Room = nil
+	}
+
+	d.Connection.Close()
 }
 
 func SendGamestate(u *model.User) {
@@ -259,6 +292,10 @@ func SendGamestateAll(r *model.Room) {
 	for _, p := range r.Participants {
 		SendGamestate(p)
 	}
+
+	for _, d := range r.Displays {
+		gs := dto.GameState(d.Room)
+		SendDisplayCommand(d, model.CommandSetGamestate, gs) }
 }
 
 // ReceiveAnswers set the answer for the user
@@ -424,8 +461,15 @@ func SendPlayerList(r *model.Room) {
 
 // Broadcast sends a command to all users in a room
 func Broadcast(r *model.Room, cmdTxt string, arguments interface{}) {
-	for i := range r.Participants {
-		err := SendCommand(r.Participants[i], cmdTxt, arguments)
+	for _,p := range r.Participants {
+		err := SendCommand(p, cmdTxt, arguments)
+		if err != nil {
+			fmt.Println("Failed to send command: ", err)
+		}
+	}
+
+	for _, d := range r.Displays {
+		err := SendDisplayCommand(d, cmdTxt, arguments)
 		if err != nil {
 			fmt.Println("Failed to send command: ", err)
 		}
