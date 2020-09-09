@@ -2,11 +2,11 @@
     <div id="rules" v-bind:class="isShown">
         <div id="rules-inner">
             <div class="icon" v-bind:class="cardGame ? 'selected' : ''" @click="selectCard">
-                <img src="../assets/card_icon.png"/>
+                <img src="../../assets/card_icon.png"/>
                 <span>Règles du jeu</span>
             </div>
             <div class="icon" v-bind:class="usage ? 'selected' : ''" @click="selectUsage">
-                <img src="../assets/game_icon.png"/>
+                <img src="../../assets/game_icon.png"/>
                 <span>Utilisation du site</span>
             </div>
         </div>
@@ -14,7 +14,7 @@
             <h2>Règles du jeu de cartes</h2>
             <p>Si vous avez déjà joué à Cards Against Humanity ou Blanc Manger Coco, les règles sont similaires. Ces règles considèrent que les joueurs ont un moyen de discussion vocal (Skype, appel messenger, etc...)</p>
             <p>Le jeu comporte des cartes blanches (réponses) et des cartes à trou.</p>
-            <p>À chaque tour, un joueur est désigné <img class="mini-icon" src="../assets/gavel.png"/> Juge . Il va lire à haute voix la carte à trou.</p>
+            <p>À chaque tour, un joueur est désigné <img class="mini-icon" src="../../assets/gavel.png"/> Juge . Il va lire à haute voix la carte à trou.</p>
             <p>Chacun des joueurs va ensuite compléter avec les cartes qu'il possède dans son jeu et tenter de faire la combinaison la plus drôle.</p>
             <p>Le juge va ensuite lire chaque proposition à haute voix et choisir celle qu'il considère la plus drôle.</p>
             <p>Si un joueur n'aime pas sa main, il peut décider d'effectuer un "Re-roll" une fois tout les 4 tours (personnalisable). Il va alors abadonner toutes ses cartes et en repiocher.</p>
@@ -45,7 +45,7 @@
         props: [ 'showRules' ],
         computed: {
             isShown() {
-                return this.$store.state.ShowRules ? "shown" : "";
+                return this.$store.state.UI.ShowRules ? "shown" : "";
             }
         },
         data: () => ({

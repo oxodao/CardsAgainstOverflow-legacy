@@ -33,7 +33,7 @@
                     <span>{{ AmtCards.sumWhite }} cartes blanches</span>
                     <span>{{ AmtCards.sumBlack }} cartes noires</span>
                 </div>
-                <button :disabled="!IsAdmin || !isReady || !HasEnoughCards" @click="startGame">Démarrer</button>
+                <button :disabled="!IsAdmin || !IsReady || !HasEnoughCards" @click="startGame">Démarrer</button>
             </div>
         </div>
     </div>
@@ -56,11 +56,9 @@
             }),
             ...mapGetters([
                 'AmtCards',
+                'IsReady',
                 'HasEnoughCards'
             ]),
-            isReady() {
-                return this.$store.state.Room.Participants.length >= 3
-            }
         },
         methods: {
             startGame() {
@@ -79,8 +77,8 @@
                 this.$store.dispatch('sendSettings');
             },
             updateReroll(e) {
-              this.$store.commit('updateRerollTimeout', e.target.value);
-              this.$store.dispatch('sendSettings');
+                this.$store.commit('updateRerollTimeout', e.target.value);
+                this.$store.dispatch('sendSettings');
             },
             updateDeckSelection(e) {
                 this.$store.commit('updateSelectedDecks', { ID: e.target.getAttribute('data-id'), Selected: e.target.checked });
@@ -95,14 +93,23 @@
         margin-bottom: 2em;
         padding: 1em;
 
-        width: 80%;
+        //width: 80%;
         height: 300px;
         background: #333;
         border-radius: 16px;
 
         display: flex;
-        flex-direction: row;
         align-items: stretch;
+        flex-direction: row;
+
+        @media (max-width: 650px) {
+            height: 400px;
+            flex-direction: column;
+
+            #subsettings {
+                padding-top: 1em;
+            }
+        }
 
         ul {
             margin: 0;
@@ -122,7 +129,7 @@
                     flex-direction: column;
 
                     label {
-                        font-size: .8em;                       
+                        font-size: .8em;
                     }
 
                     span {

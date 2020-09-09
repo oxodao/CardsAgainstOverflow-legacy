@@ -1,41 +1,40 @@
 <template>
-    <div v-if="countdown !== '?'" v-bind:class="isNearEnd ? 'near' : ''">
+    <div v-if="countdown > 0 && IsReady">
         {{ countdown }}
     </div>
 </template>
 
 <script>
-export default {
-    name: 'Countdown',
-    computed: {
-        countdown() {
-            return this.$store.state.Room.CurrentCountdown ?? '?';
-        },
-        isNearEnd() {
-            return this.$store.state.Room.CurrentCountdown < 10;
+    import {mapGetters, mapState} from "vuex";
+
+    export default {
+        name: "Countdown",
+        computed: {
+            ...mapState({
+                         countdown: state => state.UI.CurrentCountdown
+            }),
+            ...mapGetters([
+                'IsReady'
+            ])
         }
     }
-}
 </script>
 
 <style lang="scss" scoped>
     div {
-        z-index: 99999;
-        width: 3em;
-        height: 3em;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, .75);
-        border: 1px solid rgba(#cacaca, .25);
-        text-align: center;
-        line-height: 3em;
-
         position: absolute;
-        bottom: 1em;
-        right: 1em;
-    }
+        width: 2.5em;
+        height: 2.5em;
 
-    .near {
-        background: rgba(#eb5454, .75);
-        border: 1px solid rgba(#ff0000, .25);
+        right: .5em;
+        bottom: .5em;
+
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        border-radius: 50%;
+        border: 2px solid white;
+        background: rgba(black, .5);
     }
 </style>

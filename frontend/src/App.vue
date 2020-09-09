@@ -1,49 +1,67 @@
 <template>
-  <div id="app" v-bind:class="showWizz">
+  <div id="app" @click="hideMenu" v-bind:class="DisplayWizz">
     <Rules/>
-    <LoginModal v-if="ShowModal"/>
+    <Login v-if="!loggedIn"/>
     <Board v-else />
-      <audio autoPlay v-for="i in wizz" v-bind:key="i" @ended="remWiz(i)">
-        <source src="./assets/wizz.mp3" type="audio/mpeg" />
-      </audio>
+    <audio autoPlay v-for="i in wizz" v-bind:key="i" @ended="delWizz(i)">
+      <source src="./assets/wizz.mp3" type="audio/mpeg" />
+    </audio>
+
+    <div id="lost" v-if="connectionLost">
+      <h1>Connection perdue!</h1>
+      <p>Si vous êtes sur mobile, ne changez pas d'application au cours de la partie!</p>
+
+      <button @click="exit">Relancer</button>
+    </div>
   </div>
 </template>
 
 <script>
-import {mapState} from 'vuex';
-import LoginModal from './components/LoginModal.vue';
-import Rules from './components/Rules.vue';
-import Board from './components/Board.vue';
+  import Rules from './components/panels/Rules.vue'
+  import Login from "./views/Login";
+  import Board from "./views/Board";
 
-export default {
-  name: 'App',
-  components: {
-    LoginModal,
-    Rules,
-    Board
-  },
-  computed: {
-    ...mapState({
-      ShowModal: state => state.ShowLogin,
-      wizz: state => state.Wizz,
-    }),
-    showWizz() {
-      return this.wizz.length > 0 ? "wizz" : "";
-    }
-  },
-  methods: {
-    remWiz(user) {
-      this.$store.commit('delWizz', user)
-    }
-  },
-  mounted: function() {
-    //document.documentElement.requestFullscreen();
-    screen.orientation.lock("landscape")
+  import {mapGetters, mapState} from "vuex";
+
+  export default {
+    name: 'App',
+    components: {
+      Rules,
+      Login,
+      Board,
+    },
+    computed: {
+      ...mapState({
+        wizz: state => state.UI.Wizz,
+        loggedIn: state => state.UI.LoggedIn,
+        connectionLost: state => state.UI.LostConnection,
+      }),
+      ...mapGetters([
+        'DisplayWizz'
+      ]),
+    },
+    methods: {
+      delWizz(user) {
+        this.$store.commit('delWizz', user)
+      },
+      hideMenu(e) {
+        if (this.$store.state.UI.MenuVisible) {
+          this.$store.commit('toggleMenu');
+          e.stopPropagation();
+        }
+      },
+      exit() {
+        window.location.reload();
+      }
+    },
   }
-}
 </script>
 
-<style>
+<style lang="scss">
+  * {
+    box-sizing: border-box;
+  }
+
   body {
     padding: 0;
     margin: 0;
@@ -54,6 +72,20 @@ export default {
 
     background: #222;
     color: #fff;
+  }
+
+  #lost {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999999999999;
+    background: rgba(black, .8);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
   }
 
   #app {

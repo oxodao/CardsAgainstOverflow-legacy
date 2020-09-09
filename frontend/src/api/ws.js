@@ -1,21 +1,35 @@
 export function connect(e) {
     let store = this.$store;
     let toasted = this.$toasted;
+    let deporte = this.affichageDeporte.length > 0;
+
+    console.log("DEPORTE: ", deporte);
+    store.commit('setDeporte', deporte);
+
     e.preventDefault();
 
-    let url = location.host;
+    // Building the URL
+    let url = "ws://" + location.host + "/";
 
     if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development')
-        url = "localhost:8000"
+        url = "ws://192.168.1.12:8000/"
 
-    let ws = new WebSocket("ws://"+url+"/api?username=" + this.username + "&room=" + this.room)
+    if (!deporte) {
+        url += "api?username=" + this.username + "&";
+    } else {
+        url += "deporte?";
+    }
+
+    url += "room=" + this.room;
+
+    // Connecting to it
+    let ws = new WebSocket(url)
     ws.onmessage = (e) => parseMessage(store, toasted, e.data);
     ws.onerror = (e) => console.log("ERR: ", e);
-    ws.onclose = (e) => console.log("Connection closed: ", e)
-
-    //if (process.env.NODE_ENV !== "development") {
-        //localStorage.setItem('username', this.username);
-    //}
+    ws.onclose = (e) => {
+        console.log("Connection closed: ", e)
+        store.commit("connectionClosed")
+    }
 
     window.setInterval(function() {
         ws.send(JSON.stringify({
@@ -28,60 +42,18 @@ export function connect(e) {
 }
 
 export function parseMessage(store, toasted, msg) {
-    let cmd = JSON.parse(msg)
-    cmd.Arguments = JSON.parse(cmd.Arguments)
-    
+    let cmd = JSON.parse(msg);
+    cmd.Arguments = JSON.parse(cmd.Arguments);
+
     switch(cmd.Command) {
-        case 'ERROR':
-            console.log("Error: ", cmd.Arguments)
-            //toasted.show(msg.Arguments) // Not working for some reasons, no errors
-            alert(cmd.Arguments)
-            break;
-
-        case 'CRITICAL_ERROR':
-            console.log("Error: ", cmd.Arguments)
-            //toasted.show(msg.Arguments) // Not working for some reasons, no errors
-            alert(cmd.Arguments)
-
-            break;
-
-        case 'CONNECTED':
-            store.commit('connected', cmd.Arguments)
-            break;
-
-        case 'SET_GAMESTATE':
-            store.commit('setState', cmd.Arguments)
-            break;
-
-        case 'PLAYER_LIST':
-            store.commit('setPlayerList', cmd.Arguments)
-            break;
-
-        case 'GOT_SETTINGS':
-            store.commit('gotSettings', cmd.Arguments);
-            break;
-
-        case 'COUNTDOWN':
-            store.commit('setCountdown', cmd.Arguments)
-            break;
-
-        case 'JUDGE_SELECTION':
-            store.commit('setJudgeSelection', cmd.Arguments)
-            break;
-
-        case 'WIZZ':
-            store.commit('addWizz', cmd.Arguments)
-            break;
-
-        case 'WIZZ_REFILLED':
-            store.commit('canWizz', true);
-            break;
-
-        case 'HAS_PLAYED':
-            store.commit('hasPlayed', cmd.Arguments)
-            break;
+        case "ERROR":
+        case "CRITICAL_ERROR":
+            console.log(cmd.Command + ": ", cmd.Arguments);
+            alert(cmd.Command + ": " + cmd.Arguments);
+            break
 
         default:
-            console.log("UNHANDLED COMMAND: " + cmd.Command)
+            store.commit(cmd.Command, cmd.Arguments)
+            break
     }
 }

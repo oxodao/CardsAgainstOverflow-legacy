@@ -1,35 +1,36 @@
 <template>
     <li v-bind:class="isMe">
         <div>
-            <img v-if="hasPlayed" src="../assets/card_icon.png" alt="Has played"/>
+            <img v-if="player.HasPlayed" src="../assets/card_icon.png" alt="Has played"/>
             <img v-if="isWizzing" src="../assets/msn_wizz.png" alt="Wizzing"/>
-            <img v-if="isAdmin" src="../assets/admin.png" alt="Admin"/>
-            <img v-if="isJudge" src="../assets/gavel.png" alt="Judge"/>
-            <span>{{ username }}</span>
+            <img v-if="player.IsAdmin" src="../assets/admin.png" alt="Admin"/>
+            <img v-if="player.IsJudge" src="../assets/gavel.png" alt="Judge"/>
+            <span>{{ player.Username }}</span>
         </div>
-        <span class="score">{{ score }}</span>
+        <span class="score">{{ player.Score }}</span>
     </li>
 </template>
 
 <script>
-export default {
-    name: 'PlayerName',
-    props: [
-        'username',
-        'score',
-        'isAdmin',
-        'isJudge',
-        'hasPlayed'
-    ],
-    computed: {
-        isMe() {
-            return this.username === this.$store.state.User.Username ? "isMe" : ""
-        },
-        isWizzing() {
-            return this.$store.state.Wizz.includes(this.username);
+    import {mapState} from "vuex";
+
+    export default {
+        name: 'PlayerName',
+        props: [
+            'player'
+        ],
+        computed: {
+            ...mapState({
+                IsDeporte: state => state.UI.Deporte,
+            }),
+            isMe() {
+                return (!this.IsDeporte && (this.player.Username === this.$store.state.User.Username)) ? "isMe" : "";
+            },
+            isWizzing() {
+                return this.$store.state.UI.Wizz.includes(this.player.Username);
+            }
         }
     }
-}
 </script>
 
 <style lang="scss" scoped>
@@ -57,9 +58,10 @@ export default {
         }
 
         .score {
-            width: 5em;
+            width: 2.5em;
             border-left: 1px solid #111;
             text-align: center;
+            margin-left: .75em;
         }
     }
 </style>
