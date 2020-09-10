@@ -9,11 +9,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Building docker image
-      uses: docker/build-push-action@v1
+    - name: Login do DH
+      uses: docker/login-action@v1
       with:
         username: ${{ secrets.REGISTRY_USERNAME }}
-        password: ${{ secrets.REGISTRY_PASSWORD }} 
-        repository: oxodao/cardsagainstoverflow
-        tags: latest
-        buildoptions: "--compress --force-rm"
+        password: ${{ secrets.REGISTRY_PASSWORD }}
+    - name: Building docker image
+      id: docker_build
+      uses: docker/build-push-action@v2
+      with:
+        push: true
+        tags: oxodao/cardsagainstoverflow:latest
+    - name: Image digest
+      run: echo ${{ steps.docker_build.outputs.digest }}
