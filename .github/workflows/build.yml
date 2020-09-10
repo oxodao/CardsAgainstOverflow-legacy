@@ -1,8 +1,9 @@
 name: Docker Image CI
 
 on:
-  watch: 
-    types: [started]
+  create:
+    tags:
+      - v*
 
 jobs:
   build:
@@ -28,7 +29,9 @@ jobs:
       uses: docker/build-push-action@v2
       with:
         push: true
-        tags: oxodao/cardsagainstoverflow:latest
+        tags: |
+          oxodao/cardsagainstoverflow:latest
+          oxodao/cardsagainstoverflow:${GITHUB_REF##*/}
         
     - name: Image digest
       run: echo ${{ steps.docker_build.outputs.digest }}
