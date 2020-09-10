@@ -30,8 +30,8 @@ jobs:
       with:
         push: true
         tags: |
-          oxodao/cardsagainstoverflow:latest
-          oxodao/cardsagainstoverflow:${GITHUB_REF##*/}
+          "oxodao/cardsagainstoverflow:latest"
+          "oxodao/cardsagainstoverflow:${GITHUB_REF##*/}"
         
     - name: Image digest
       run: echo ${{ steps.docker_build.outputs.digest }}
