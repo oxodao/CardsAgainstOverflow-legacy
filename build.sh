@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "Building CardsAgainstOverflow executable"
+echo "\tIf you want the docker version, just use the dockerfile"
 echo "Building frontend"
 rm -rf $PWD/frontend/dist/ $PWD/data
 rm cardsagainstoverflow
