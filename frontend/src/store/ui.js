@@ -45,6 +45,10 @@ export default {
               state.Wizz.push(payload)
         },
 
+        WIZZ_REFILLED: (state) => {
+            state.CanWizz = true;
+        },
+
         canWizz: (state, payload) => {
             state.CanWizz = payload;
         },

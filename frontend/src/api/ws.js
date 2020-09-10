@@ -8,7 +8,8 @@ export function connect(e) {
     e.preventDefault();
 
     // Building the URL
-    let url = "ws://" + location.host + "/";
+    let protocol = window.location.protocol === "https:" ? "s" : "";
+    let url = "ws" + protocol + "://" + location.host + "/";
 
     if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development')
         url = "ws://192.168.1.12:8000/"

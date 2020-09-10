@@ -127,6 +127,10 @@
                     height: 100%;
                     object-fit: contain;
                 }
+
+                &:disabled {
+                    background: darken(#3EC480, 10%);
+                }
             }
         }
     }
