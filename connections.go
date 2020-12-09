@@ -23,8 +23,10 @@ func ConnectUser(conn *websocket.Conn, params url.Values) {
 		LastPing:   time.Now(),
 	}
 
+	room := strings.ToUpper(params["room"][0])
+
 	for i := range game.Rooms {
-		if game.Rooms[i].RoomID == params["room"][0] {
+		if game.Rooms[i].RoomID == room {
 			// If there is already someone in the room with the same username, we don't let him connect
 			for _, p := range game.Rooms[i].Participants {
 				if p.Username == client.Username {
@@ -69,11 +71,12 @@ func ConnectDeporte(conn *websocket.Conn, params url.Values) {
 		MutexWS: &sync.Mutex{},
 		Connection: conn,
 		LastPing: time.Now(),
-
 	}
 
+	room := strings.ToUpper(params["room"][0])
+
 	for i := range game.Rooms {
-		if game.Rooms[i].RoomID == params["room"][0] {
+		if game.Rooms[i].RoomID == room {
 			game.JoinDisplay(display, game.Rooms[i])
 			break
 		}
