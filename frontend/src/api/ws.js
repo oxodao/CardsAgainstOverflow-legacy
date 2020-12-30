@@ -12,7 +12,7 @@ export function connect(e) {
     let url = "ws" + protocol + "://" + location.host + "/";
 
     if (!process.env.NODE_ENV || process.env.NODE_ENV === 'development')
-        url = "ws://192.168.1.97:8000/"
+        url = "ws://192.168.1.12:8000/"
 
     if (!deporte) {
         url += "api?username=" + this.username + "&";

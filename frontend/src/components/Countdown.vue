@@ -22,7 +22,7 @@
 
 <style lang="scss" scoped>
     div {
-        position: absolute;
+        position: fixed;
         width: 2.5em;
         height: 2.5em;
 

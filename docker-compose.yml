@@ -1,7 +1,7 @@
 version: "3.8"
 services:
   cao:
-    image: oxodao/cardsagainstoverflow:2.0
+    image: oxodao/cardsagainstoverflow:latest
     ports:
       - 8000:8000
     volumes:

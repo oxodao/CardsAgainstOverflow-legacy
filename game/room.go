@@ -13,7 +13,7 @@ import (
 )
 
 // Rooms is the list of all rooms on the server
-var Rooms []*model.Room = make([]*model.Room, 0)
+var Rooms = make([]*model.Room, 0)
 
 const DefaultCountdown int = 20
 
@@ -448,7 +448,7 @@ func SetSettings(u *model.User, argStr string) {
 	u.Room.MaxTurn = settings.MaxTurn
 	u.Room.ZenMode = settings.ZenMode
 	u.Room.DefaultCountdown = settings.DefaultCountdown
-	u.Room.DefaultRerollTimeout = settings.DefaultRerollTimeout
+	u.Room.DefaultRerollTimeout = settings.DefaultRerollTimeout-1
 
 	Broadcast(u.Room, model.CommandGotSettings, settings)
 
