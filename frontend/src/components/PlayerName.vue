@@ -27,7 +27,7 @@
                 return (!this.IsDeporte && (this.player.Username === this.$store.state.User.Username)) ? "isMe" : "";
             },
             isWizzing() {
-                return this.$store.state.UI.Wizz.includes(this.player.Username);
+                return this.$store.state.UI.Wizz.map(e => e.user).includes(this.player.Username);
             }
         }
     }

@@ -41,8 +41,8 @@ export default {
         },
 
         WIZZ: (state, payload) => {
-          if (!state.Wizz.includes(payload))
-              state.Wizz.push(payload)
+          if (!state.Wizz.map(e => e.user).includes(payload))
+              state.Wizz.push({user: payload, at: new Date()});
         },
 
         WIZZ_REFILLED: (state) => {
@@ -54,7 +54,11 @@ export default {
         },
 
         delWizz: (state, payload) => {
-            state.Wizz = state.Wizz.filter(e => e !== payload);
+            state.Wizz = state.Wizz.filter(e => e.user !== payload.user);
+        },
+
+        setWizzArray: (state, payload) => {
+          state.Wizz = payload;
         },
 
         COUNTDOWN: (state, payload) => {

@@ -3,7 +3,7 @@
     <Rules/>
     <Login v-if="!loggedIn"/>
     <Board v-else />
-    <audio autoPlay v-for="i in wizz" v-bind:key="i" @ended="delWizz(i)">
+    <audio autoPlay v-for="i in wizz" v-bind:key="i.user" @ended="delWizz(i)">
       <source src="./assets/wizz.mp3" type="audio/mpeg" />
     </audio>
 
