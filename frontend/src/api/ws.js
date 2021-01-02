@@ -36,12 +36,14 @@ export function connect(e) {
             Command: 'PING',
             Arguments: '{}'
         }))
+    }, 5000);
 
+    window.setInterval(function () {
         let d = new Date();
         d.setSeconds(d.getSeconds()-5);
 
         store.commit('setWizzArray', store.state.UI.Wizz.filter(w => w.at > d));
-    }, 5000);
+    }, 1500)
 
     store.commit('setWebsocket', ws)
 }
