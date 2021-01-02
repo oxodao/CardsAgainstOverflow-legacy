@@ -12,6 +12,7 @@ export default {
         SelectedCards: [],
         LostConnection: false,
         PlayersMenuVisible: false,
+        QuitGameDialog: false,
     }),
     mutations: {
         showRules: (state) => {
@@ -91,6 +92,14 @@ export default {
         toggleProposalSelection: (state, payload) => {
             state.SelectedCards = [payload];
         },
+
+        hideCloseDialog(state) {
+            state.QuitGameDialog = false;
+        },
+
+        showCloseDialog(state) {
+            state.QuitGameDialog = true;
+        }
     },
     actions: {
         sendWizz: ({state, commit}) => {

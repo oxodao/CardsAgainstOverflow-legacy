@@ -22,7 +22,7 @@ export default {
   methods : {
     quitGame(e) {
       e.stopPropagation();
-      window.location.reload();
+      this.$store.commit('showCloseDialog')
       return false;
     }
   }

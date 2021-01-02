@@ -7,6 +7,8 @@
       <source src="./assets/wizz.mp3" type="audio/mpeg" />
     </audio>
 
+    <ExitDialog v-if="showExitDialog"/>
+
     <div id="lost" v-if="connectionLost">
       <h1>Connection perdue!</h1>
       <p>Si vous êtes sur mobile, ne changez pas d'application au cours de la partie!</p>
@@ -22,10 +24,12 @@
   import Board from "./views/Board";
 
   import {mapGetters, mapState} from "vuex";
+  import ExitDialog             from "@/components/ExitDialog";
 
   export default {
     name: 'App',
     components: {
+      ExitDialog,
       Rules,
       Login,
       Board,
@@ -35,6 +39,7 @@
         wizz: state => state.UI.Wizz,
         loggedIn: state => state.UI.LoggedIn,
         connectionLost: state => state.UI.LostConnection,
+        showExitDialog: state => state.UI.QuitGameDialog,
       }),
       ...mapGetters([
         'DisplayWizz'
