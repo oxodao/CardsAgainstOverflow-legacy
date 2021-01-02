@@ -29,6 +29,10 @@
         right: .5em;
         bottom: .5em;
 
+        @media(max-width: 650px) {
+          bottom: calc(.5em + 64px + .25em);
+        }
+
         display: flex;
         align-items: center;
         justify-content: center;

@@ -1,6 +1,6 @@
 <template>
   <header>
-    <button @click="toggleMenu"><img src="../../assets/menu.png" alt="Menu"/></button>
+    <button @click="quitGame"><img src="../../assets/exit.png" alt="Quitter la partie"/></button>
     <h1 id="game-title">Cards Against Overflow</h1>
 
     <div>
@@ -20,10 +20,9 @@ export default {
     })
   },
   methods : {
-    toggleMenu(e) {
+    quitGame(e) {
       e.stopPropagation();
-      this.$store.commit('toggleMenu')
-
+      window.location.reload();
       return false;
     }
   }

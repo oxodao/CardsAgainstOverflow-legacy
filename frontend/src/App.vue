@@ -1,5 +1,5 @@
 <template>
-  <div id="app" @click="hideMenu" v-bind:class="DisplayWizz">
+  <div id="app" @click="hidePlayersList" v-bind:class="DisplayWizz">
     <Rules/>
     <Login v-if="!loggedIn"/>
     <Board v-else />
@@ -44,9 +44,9 @@
       delWizz(user) {
         this.$store.commit('delWizz', user)
       },
-      hideMenu(e) {
-        if (this.$store.state.UI.MenuVisible) {
-          this.$store.commit('toggleMenu');
+      hidePlayersList(e) {
+        if (this.$store.state.UI.PlayersMenuVisible) {
+          this.$store.commit('togglePlayersMenu');
           e.stopPropagation();
         }
       },

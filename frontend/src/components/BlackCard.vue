@@ -1,5 +1,5 @@
 <template>
-  <h1 v-if="Started && currBlackCard !== undefined && currBlackCard !== null && IsReady">
+  <h1 v-if="Started && currBlackCard !== undefined && currBlackCard !== null && IsReady" :class="'size ' + Size">
     <span v-for="txt in getCardText()" v-bind:key="txt.Question" v-bind:class="txt.Class">{{ txt.Question }}</span>
     <span v-if="TurnState === 2" class="colored-blue"><br/>{{ winner }}</span>
   </h1>
@@ -10,6 +10,11 @@ import {mapGetters, mapState} from "vuex";
 
 export default {
   name    : "BlackCard",
+  data() {
+    return {
+      Size: "Size1",
+    }
+  },
   computed: {
     ...mapState({
       Started      : state => state.Room.Started,
@@ -23,6 +28,14 @@ export default {
   },
   methods : {
     getCardText() {
+      //this.currBlackCard.Text = "Le premier soir je me suis donc endormi sur le sable à 1000 milles de toute terre habitée. J'étais bien plus isolé qu'un naufragé sur un radeau au milieu de l'océan. Alors imaginez ma surprise quand au lever du jour, une drôle de petite voix m'a réveillé. Elle disait \"S'il vout plait... Dessine-moi ____\"";
+      let length = this.currBlackCard.Text.length || 100;
+      if (length < 150) {
+        this.Size = "Size1"
+      } else if (length >= 150) {
+        this.Size = "Size2"
+      }
+
       if (this.TurnState === 0)
         return [
           {
@@ -59,10 +72,19 @@ export default {
 }
 </script>
 
-<style scoped>
+<style lang="scss" scoped>
 h1 {
   text-align: center;
   margin: .5em;
+}
+
+$sizes: ("Size1" 2em), ("Size2" 1em);
+@each $i, $val in $sizes {
+  .#{$i} {
+    @media(max-width: 650px) {
+      font-size: $val;
+    }
+  }
 }
 
 .colored-green {

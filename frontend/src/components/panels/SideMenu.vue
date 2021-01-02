@@ -13,12 +13,8 @@
     </ul>
 
     <div id="actions">
-      <button v-if="!IsDeporte" :disabled="!canWizz" @click="addWizz" v-tooltip="'Wizz'"><img
-          src="../../assets/msn_wizz.png" alt="wizz"/></button>
-      <button v-if="isStarted && !IsDeporte" :disabled="!canReroll" @click="reroll" v-tooltip="'Re-piocher'"><img
-          src="../../assets/reroll.png" alt="Reroll"/>
-        <span class="rerollTimeout" v-if="RerollTimeout > 0">{{RerollTimeout}}</span>
-      </button>
+      <WizzButton/>
+      <RerollButton/>
     </div>
     <h3 v-if="isStarted && currTurn <= maxTurn && !zenMode">Tour: {{ currTurn }} / {{ maxTurn }}</h3>
     <h3 v-else-if="isStarted && (zenMode || currTurn <= maxTurn)">Tour: {{ currTurn }}</h3>
@@ -26,50 +22,34 @@
 </template>
 
 <script>
-import PlayerName from "../PlayerName";
-import {mapState} from "vuex";
+import PlayerName   from "../PlayerName";
+import {mapState}   from "vuex";
+import RerollButton from "@/components/RerollButton";
+import WizzButton   from "@/components/WizzButton";
 
 export default {
   name      : "SideMenu",
   components: {
+    WizzButton,
+    RerollButton,
     PlayerName,
   },
   computed  : {
     ...mapState({
       participants : state => state.Room.Participants,
-      canWizz      : state => state.UI.CanWizz,
       currTurn     : state => state.Room.Turn,
       maxTurn      : state => state.Room.MaxTurn,
       zenMode      : state => state.Room.ZenMode,
       isStarted    : state => state.Room.Started,
       MenuVisible  : state => state.UI.MenuVisible,
-      IsDeporte    : state => state.UI.Deporte,
-      RerollTimeout: state => state.User.RerollTimeout,
-    }),
-    canReroll() {
-      let state = this.$store.state;
-      return !state.User.IsJudge && state.Room.TurnState === 0 && state.User.RerollTimeout === 0;
-    },
+    })
   },
   methods   : {
-    reroll() {
-      this.$store.dispatch('reroll');
-    },
-    addWizz() {
-      this.$store.dispatch('sendWizz')
-    },
     exit() {
       window.location.reload();
     }
   },
-  mounted() {
-    document.addEventListener('resize', () => {
-      let w = document.documentElement.clientWidth;
-      if (this.$store.UI.MenuVisible && w > 650) {
-        this.$store.commit('toggleMenu');
-      }
-    })
-  }
+
 }
 </script>
 
@@ -125,39 +105,6 @@ nav {
     flex-direction: row;
     justify-content: center;
     align-items: center;
-
-    button {
-      position: relative;
-      width: 3em;
-      height: 3em;
-
-      img {
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-      }
-
-      &:disabled {
-        background: darken(#3EC480, 10%);
-      }
-
-      .rerollTimeout {
-        $size: 2em;
-        position: absolute;
-        top: -25%;
-        right: -25%;
-
-        width: $size;
-        height: $size;
-        border-radius: 50%;
-        background: rgba(darken(#3EC480, 25%), .8);
-        border: 1px solid lighten(#3EC480, 25%);
-        color: white;
-
-        line-height: $size;
-        text-align: center;
-      }
-    }
   }
 }
 </style>

@@ -8,12 +8,14 @@
       <template v-else>
         <BlackCard/>
         <Deck/>
-        <button v-if="!IsDeporte && IsReady && TurnState === 1 && IsJudge" @click="sendProposalSelection">Valider
-        </button>
+        <div id="buttonbar" v-if="!IsDeporte && IsReady && TurnState === 1 && IsJudge">
+          <button @click="sendProposalSelection">Valider</button>
+        </div>
       </template>
 
       <Countdown/>
     </div>
+    <BottomMenu />
   </div>
 </template>
 
@@ -26,10 +28,11 @@ import Countdown              from "../components/Countdown";
 import {mapGetters, mapState} from "vuex";
 import BlackCard              from "../components/BlackCard";
 import Deck                   from "../components/Deck";
+import BottomMenu             from "@/components/panels/BottomMenu";
 
 export default {
   name      : "Board",
-  components: {Deck, BlackCard, Countdown, RoomSettings, GameStatus, Header, SideMenu},
+  components: {BottomMenu, Deck, BlackCard, Countdown, RoomSettings, GameStatus, Header, SideMenu},
   computed  : {
     ...mapState({
       Started  : state => state.Room.Started,
@@ -55,6 +58,13 @@ export default {
   grid-template-areas: "a a"
                        "b c";
   grid-template-rows: 3em 1fr;
+  grid-template-columns: 350px 1fr;
+
+  @media (max-width: 650px) {
+    grid-template-areas: "a" "c" "d";
+    grid-template-rows: 3em 1fr 64px;
+    grid-template-columns: 1fr;
+  }
 
   #board {
     grid-area: c;
@@ -63,8 +73,15 @@ export default {
     align-items: center;
     justify-content: space-around;
 
-    > button {
-      padding: 1em;
+    grid-template-rows: auto min-content min-content;
+
+    #buttonbar {
+      text-align: center;
+      margin: .5em 0;
+
+      button {
+        padding: 1em;
+      }
     }
 
     @media (max-width: 650px) {

@@ -34,8 +34,9 @@ export default {
 
 #hand {
   max-width: 100%;
-  margin: 1em;
-  align-self: center;
+  padding: 1em;
+  margin-right: 1em;
+  align-self: end;
   justify-self: center;
 
   display: flex;
@@ -46,7 +47,13 @@ export default {
   height: 280px;
   overflow: auto;
 
+  width: 100%;
+
   gap: 15px;
+
+  @media (min-width: 651px) {
+    justify-content: center;
+  }
 }
 
 </style>

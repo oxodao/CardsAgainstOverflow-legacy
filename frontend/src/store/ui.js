@@ -3,7 +3,6 @@ import Vue from 'vue';
 export default {
     state: () => ({
         Deporte: false,
-        MenuVisible: false,
         LoggedIn: false,
         ShowRules: false,
         Wizz: [],
@@ -12,6 +11,7 @@ export default {
         CurrentCountdown: 0,
         SelectedCards: [],
         LostConnection: false,
+        PlayersMenuVisible: false,
     }),
     mutations: {
         showRules: (state) => {
@@ -23,12 +23,12 @@ export default {
           state.Deporte = payload;
         },
 
-        connectionClosed: (state) => {
-            state.WebSocket = null;
+        togglePlayersMenu: (state) => {
+            state.PlayersMenuVisible = !state.PlayersMenuVisible;
         },
 
-        toggleMenu: (state) => {
-          state.MenuVisible = !state.MenuVisible;
+        connectionClosed: (state) => {
+            state.WebSocket = null;
         },
 
         setWebsocket: (state, payload) => {
