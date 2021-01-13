@@ -45,8 +45,10 @@ export default {
     })
   },
   methods   : {
-    exit() {
-      window.location.reload();
+    exit(e) {
+      e.stopPropagation();
+      this.$store.commit('showCloseDialog')
+      return false;
     }
   },
 

@@ -6,7 +6,7 @@ COPY ./frontend /app
 RUN yarn
 RUN yarn build
 
-FROM golang:1.14 AS BUILDBACK
+FROM golang:1.15-alpine AS BUILDBACK
 
 WORKDIR /app
 COPY . /app

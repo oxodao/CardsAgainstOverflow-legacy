@@ -3,6 +3,7 @@ package game
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/oxodao/cardsagainstoverflow/dal"
 	"time"
 
 	"github.com/oxodao/cardsagainstoverflow/model"
@@ -159,6 +160,7 @@ func FillHand(u *model.User) {
 	for i := range u.Hand {
 		if u.Hand[i] == nil {
 			u.Hand[i] = u.Room.PickCard()
+			_ = dal.PickedCard(false, u.Room.StatID, u.Hand[i].ID)
 		}
 	}
 }

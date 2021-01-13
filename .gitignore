@@ -5,3 +5,4 @@ cardsagainstoverflow
 pkged.go
 .vscode
 data/*
+SQL/decks/

@@ -2,6 +2,7 @@ package dal
 
 import (
 	"errors"
+	"fmt"
 	"github.com/jmoiron/sqlx"
 	"github.com/oxodao/cardsagainstoverflow/model"
 )
@@ -17,7 +18,10 @@ func FetchAllDecks() ([]*model.Deck, error) {
 
 	for rows.Next() {
 		deck := &model.Deck{}
-		rows.StructScan(&deck)
+		err := rows.StructScan(deck)
+		if err != nil {
+			fmt.Printf("Can't fetch deck: %v\n", err)
+		}
 
 		if deck.SelectedByDefault {
 			deck.IsSelected = true
@@ -41,7 +45,7 @@ func FetchSelectedDecks(selected []int64) ([]*model.Deck, error) {
 	rq := "SELECT ID, NAME FROM DECK WHERE ID IN ("
 	args := []interface{}{}
 	for i, v := range selected {
-		rq = rq + "?"
+		rq = rq + fmt.Sprintf("$%v", i+1)
 		args = append(args, v)
 
 		if i != len(selected)-1 {
@@ -90,17 +94,13 @@ func FetchCardsForDecks(decks []*model.Deck) error {
 
 func FetchCardsForDeck(DB *sqlx.DB, deck int64, isBlack bool) ([]*model.Card, error) {
 	var cards []*model.Card
-	i := 0
-	if isBlack {
-		i = 1
-	}
 
 	rows, err := DB.Queryx(`
 	SELECT c.ID, c.TEXT, cd.DECK_ID as DECK
 	FROM CARD c
 		INNER JOIN CARD_DECK cd ON c.ID = cd.CARD_ID
-	WHERE cd.DECK_ID = ?
-		AND c.IS_BLACK_CARD = ?`, deck, i)
+	WHERE cd.DECK_ID = $1
+		AND c.IS_BLACK_CARD = $2`, deck, isBlack)
 	if err != nil {
 		return cards, err
 	}

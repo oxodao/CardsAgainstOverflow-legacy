@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 	"github.com/oxodao/cardsagainstoverflow/model"
 )
 
@@ -20,7 +20,7 @@ var dbSingleton *sqlx.DB
 func GetDatabase() *sqlx.DB {
 	var err error = nil
 	if dbSingleton == nil {
-		dbSingleton, err = sqlx.Connect("sqlite3", "CAO.db")
+		dbSingleton, err = sqlx.Connect("postgres", "postgres://cao:cao@localhost:5432/cao?sslmode=disable")
 		if err != nil {
 			panic(err)
 		}

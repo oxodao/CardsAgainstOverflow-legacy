@@ -2,7 +2,36 @@ version: "3.8"
 services:
   cao:
     image: oxodao/cardsagainstoverflow:latest
+    restart: always
     ports:
       - 8000:8000
     volumes:
       - ./CAO.db:/CAO.db
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - 8001:8080
+
+  database:
+    image: postgres:alpine
+    restart: always
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_USER=cao
+      - POSTGRES_PASSWORD=cao
+      - POSTGRES_DB=cao
+    volumes:
+      - ./data:/var/lib/postgresql/data
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    volumes:
+      - grafana:/var/lib/grafana
+    ports:
+      - 3000:3000
+
+volumes:
+  grafana:

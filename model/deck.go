@@ -1,12 +1,12 @@
 package model
 
 type Deck struct {
-	ID         int64   `db:"ID"`
-	Title      string  `json:"Title" db:"NAME"`
-	Cards      []*Card `json:"Cards"`
-	BlackCards []*Card `json:"BlackCards"`
-	IsSelected bool    `json:"IsSelected" db:"-"`
-	AmtBlack int `db:"AMT_BLACK"`
-	AmtWhite int `db:"AMT_WHITE"`
-	SelectedByDefault bool `db:"SELECTED_BY_DEFAULT"`
+	ID                int64   `db:"id"`
+	Title             string  `json:"Title" db:"name"`
+	Cards             []*Card `json:"Cards" db:"-"`
+	BlackCards        []*Card `json:"BlackCards" db:"-"`
+	IsSelected        bool    `json:"IsSelected" db:"-"`
+	AmtBlack          int     `db:"amt_black"`
+	AmtWhite          int     `db:"amt_white"`
+	SelectedByDefault bool    `db:"selected_by_default"`
 }

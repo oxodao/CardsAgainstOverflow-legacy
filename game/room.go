@@ -20,6 +20,7 @@ const DefaultCountdown int = 20
 // StartTurn starts a turn
 func StartTurn(r *model.Room, gameStarting bool) {
 	r.CurrentBlackCard = r.PickBlackCard()
+	_ = dal.PickedCard(true, r.StatID, r.CurrentBlackCard.ID)
 
 	if gameStarting {
 		Log(r, "Starting game!")
@@ -28,6 +29,7 @@ func StartTurn(r *model.Room, gameStarting bool) {
 		}
 	} else {
 		r.Turn = r.Turn + 1
+		_ = dal.NextTurn(r.StatID)
 
 		// If the game has ended, no need to do another turn
 		if r.Turn > r.MaxTurn && !r.ZenMode {
@@ -114,8 +116,16 @@ func StartGame(r *model.Room) {
 			}
 		}
 
-		if RoomSelectDecks(r) != nil {
-			Log(r, "Can't fetch decks!")
+		if err := RoomSelectDecks(r); err != nil {
+			Log(r, fmt.Sprintf("Can't fetch decks: %v\n", err))
+		}
+
+		id, err := dal.StartedGame(r.ZenMode)
+		if err != nil {
+			Log(r, fmt.Sprintf("Could not store statistics for room: %v", err))
+			r.StatID = -1
+		} else {
+			r.StatID = id
 		}
 
 		StartTurn(r, true)
@@ -154,6 +164,21 @@ func RoomSelectDecks(r *model.Room) error {
 		r.RemainingCards = append(r.RemainingCards, decks[i].Cards...)
 		r.RemainingBlackCards = append(r.RemainingBlackCards, decks[i].BlackCards...)
 	}
+
+	/**
+	 * We shuffle both decks so that cards are more random
+	 */
+	rand.Shuffle(len(r.RemainingBlackCards), func(i, j int) {
+		c := r.RemainingBlackCards[i]
+		r.RemainingBlackCards[i] = r.RemainingBlackCards[j]
+		r.RemainingBlackCards[j] = c
+	})
+
+	rand.Shuffle(len(r.RemainingBlackCards), func(i, j int) {
+		c := r.RemainingCards[i]
+		r.RemainingCards[i] = r.RemainingCards[j]
+		r.RemainingCards[j] = c
+	})
 
 	// We then calculate each amount of answers per card we want
 	// Maybe store this into database later but it will do for now

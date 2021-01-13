@@ -18,14 +18,15 @@ const TurnStateShowWinner TurnState = 2
 
 // Room represents a room
 type Room struct {
-	RoomID           string
-	Participants     []*User
-	Displays         []*Display `json:"-"`
-	ZenMode          bool
-	Turn             int
-	MaxTurn          int
-	Started          bool
-	CurrentBlackCard *Card
+	StatID               int64 `json:"-"`
+	RoomID               string
+	Participants         []*User
+	Displays             []*Display `json:"-"`
+	ZenMode              bool
+	Turn                 int
+	MaxTurn              int
+	Started              bool
+	CurrentBlackCard     *Card
 	DefaultRerollTimeout int
 
 	TurnState        TurnState
@@ -54,7 +55,7 @@ func (r *Room) HasEnoughCards() bool {
 			amtCards = amtCards + c.AmtWhite
 		}
 	}
-	return ((len(r.Participants)+1) * 7) <= amtCards
+	return ((len(r.Participants) + 1) * 7) <= amtCards
 }
 
 // IsReady returns whether the game can start
@@ -115,7 +116,6 @@ func (r *Room) PickBlackCard() *Card {
 
 	return card
 }
-
 
 // Utils
 func GetAllPlayersCardsID(r *Room) []int64 {
