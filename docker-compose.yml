@@ -3,16 +3,20 @@ services:
   cao:
     image: oxodao/cardsagainstoverflow:latest
     restart: always
+    environment:
+      - DB_USERNAME=cao
+      - DB_PASSWORD=cao
+      - DB_DATABASE=cao
+      - DB_HOST=database
+      - DB_PORT=5432
     ports:
       - 8000:8000
-    volumes:
-      - ./CAO.db:/CAO.db
 
-  adminer:
-    image: adminer
-    restart: always
-    ports:
-      - 8001:8080
+#  adminer:
+#    image: adminer
+#    restart: always
+#    ports:
+#      - 8001:8080
 
   database:
     image: postgres:alpine
