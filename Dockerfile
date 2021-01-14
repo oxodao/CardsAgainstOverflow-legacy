@@ -22,7 +22,7 @@ RUN go mod download
 
 RUN go build -o cao
 
-FROM debian:bullseye-20200803-slim
+FROM alpine
 
 COPY --from=BUILDBACK /app/cao /cao
 
