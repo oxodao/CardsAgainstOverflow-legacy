@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  cao:
+    build: { target: backend, context: . }
+    restart: always
+    environment:
+      - DB_USERNAME=cao
+      - DB_PASSWORD=cao
+      - DB_DATABASE=cao
+      - DB_HOST=database
+      - DB_PORT=5432
+    ports:
+      - 8300:80
+
+  database:
+    image: postgres:alpine
+    restart: always
+    environment:
+      - PGDATA=/var/lib/postgresql/data/pgdata
+      - POSTGRES_USER=cao
+      - POSTGRES_PASSWORD=cao
+      - POSTGRES_DB=cao
+    ports:
+      - 5432:5432
+    volumes:
+      - database:/var/lib/postgresql/data
+
+volumes:
+  database:
