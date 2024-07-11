@@ -3,8 +3,9 @@ package game
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/oxodao/cardsagainstoverflow/dal"
 	"time"
+
+	"github.com/oxodao/cardsagainstoverflow/dal"
 
 	"github.com/oxodao/cardsagainstoverflow/model"
 )
@@ -13,7 +14,7 @@ func Reroll(u *model.User) {
 	if u.RerollTimeout == 0 {
 		u.Hand = [7]*model.Card{}
 		u.SelectedCards = []int{}
-		u.RerollTimeout = u.Room.DefaultRerollTimeout+1
+		u.RerollTimeout = u.Room.DefaultRerollTimeout + 1
 
 		FillHand(u)
 		SendGamestate(u)
@@ -63,43 +64,29 @@ func ExecuteCommand(u *model.User, cmd model.Command) {
 	switch cmd.Command {
 	case "PING":
 		u.LastPing = time.Now()
-		break
-
 	case "START_GAME":
 		if u.IsAdmin {
 			StartGame(u.Room)
 		}
-		break
-
 	case "SEND_SELECTION":
 		ReceiveAnswers(u, cmd.Arguments)
-		break
-
 	case "SKIP_COUNTDOWN":
 		if u.IsJudge {
 			u.Room.CurrentCountdown = 0
 		}
-		break
-
 	case "SET_SETTINGS":
 		if u.IsAdmin {
 			SetSettings(u, cmd.Arguments)
 		}
-		break;
-
 	case "REROLL":
 		if !u.IsJudge {
 			Reroll(u)
 		}
-		break
-
 	case "WIZZ":
 		if u.LastWizz == 0 {
 			Broadcast(u.Room, "WIZZ", u.Username)
 			u.LastWizz = 15
 		}
-		break
-
 	default:
 		fmt.Printf("Unhandled command from %v: %v\n", u.Username, cmd.Command)
 	}
@@ -110,8 +97,6 @@ func ExecuteDisplayCommand(d *model.Display, cmd model.Command) {
 	switch cmd.Command {
 	case "PING":
 		d.LastPing = time.Now()
-		break
-
 	}
 }
 

@@ -104,7 +104,6 @@ func StartGame(r *model.Room) {
 	if r.IsReady() {
 		r.Started = true
 		r.Turn = 1
-		//r.Turn = r.MaxTurn // Debug only
 
 		for i, p := range r.Participants {
 			p.IsJudge = i == 0
@@ -214,7 +213,7 @@ func JoinDisplay(d *model.Display, r *model.Room) {
 }
 
 func QuitRoom(u *model.User, reason string) {
-	Log(u.Room, u.Username+" has left the room (" + reason + ").")
+	Log(u.Room, u.Username+" has left the room ("+reason+").")
 
 	// Setting the next player as the current player
 	// If the user was admin, setting the next player as admin
@@ -289,7 +288,7 @@ func QuitRoom(u *model.User, reason string) {
 }
 
 func DisplayQuitRoom(d *model.Display, reason string) {
-	Log(d.Room, "A display has left the room (" + reason + ").")
+	Log(d.Room, "A display has left the room ("+reason+").")
 	room := d.Room
 	index := -1
 
@@ -320,7 +319,8 @@ func SendGamestateAll(r *model.Room) {
 
 	for _, d := range r.Displays {
 		gs := dto.GameState(d.Room)
-		SendDisplayCommand(d, model.CommandSetGamestate, gs) }
+		SendDisplayCommand(d, model.CommandSetGamestate, gs)
+	}
 }
 
 // ReceiveAnswers set the answer for the user
@@ -452,10 +452,10 @@ func CountdownProcess(r *model.Room) {
 }
 
 type gotSettings struct {
-	SelectedDecks []int64
-	MaxTurn int
-	ZenMode bool
-	DefaultCountdown int
+	SelectedDecks        []int64
+	MaxTurn              int
+	ZenMode              bool
+	DefaultCountdown     int
 	DefaultRerollTimeout int
 }
 
@@ -463,7 +463,7 @@ func SetSettings(u *model.User, argStr string) {
 	settings := gotSettings{}
 	err := json.Unmarshal([]byte(argStr), &settings)
 	if err != nil {
-		Log(u.Room, fmt.Sprint("Can't parse settings: %v", err))
+		Log(u.Room, fmt.Sprintf("Can't parse settings: %v", err))
 		return
 	}
 
@@ -473,7 +473,7 @@ func SetSettings(u *model.User, argStr string) {
 	u.Room.MaxTurn = settings.MaxTurn
 	u.Room.ZenMode = settings.ZenMode
 	u.Room.DefaultCountdown = settings.DefaultCountdown
-	u.Room.DefaultRerollTimeout = settings.DefaultRerollTimeout-1
+	u.Room.DefaultRerollTimeout = settings.DefaultRerollTimeout - 1
 
 	Broadcast(u.Room, model.CommandGotSettings, settings)
 
@@ -486,7 +486,7 @@ func SendPlayerList(r *model.Room) {
 
 // Broadcast sends a command to all users in a room
 func Broadcast(r *model.Room, cmdTxt string, arguments interface{}) {
-	for _,p := range r.Participants {
+	for _, p := range r.Participants {
 		err := SendCommand(p, cmdTxt, arguments)
 		if err != nil {
 			fmt.Println("Failed to send command: ", err)

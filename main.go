@@ -1,17 +1,12 @@
 package main
 
 import (
-	cryptorand "crypto/rand"
 	"embed"
-	"encoding/binary"
-	"flag"
 	"fmt"
 	"io/fs"
-	"math/rand"
 	"net/http"
 	"net/url"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -22,32 +17,19 @@ import (
 //go:embed frontend/dist
 var frontend embed.FS
 
+var wsUpgrader = websocket.Upgrader{
+	ReadBufferSize:  1024,
+	WriteBufferSize: 1024,
+}
+
 func main() {
-	var b [8]byte
-	_, err := cryptorand.Read(b[:])
-	if err != nil {
-		panic("cannot seed math/rand package with cryptographically secure random number generator")
-	}
-	rand.Seed(int64(binary.LittleEndian.Uint64(b[:])))
-	dbCreationFile := flag.String("create_db", "", "File that contains initial decks to create the database")
-
-	flag.Parse()
-
-	if len(*dbCreationFile) > 0 {
-		err := dal.InitializeDB(*dbCreationFile)
-		if err != nil {
-			fmt.Println(err)
-		}
-		return
-	}
-
 	fmt.Println("CardsAgainstOverflow")
 
 	// Connect to the DB / Init singleton
 	dal.GetDatabase()
 
 	http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
-		conn, err := websocket.Upgrade(w, r, nil, 1024, 1024)
+		conn, err := wsUpgrader.Upgrade(w, r, nil)
 		if err != nil {
 			return
 		}
@@ -57,7 +39,7 @@ func main() {
 	})
 
 	http.HandleFunc("/deporte", func(w http.ResponseWriter, r *http.Request) {
-		conn, err := websocket.Upgrade(w, r, nil, 1024, 1024)
+		conn, err := wsUpgrader.Upgrade(w, r, nil)
 		if err != nil {
 			return
 		}
@@ -102,27 +84,4 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-func getAllFilenames(fs *embed.FS, path string) (out []string, err error) {
-	if len(path) == 0 {
-		path = "."
-	}
-	entries, err := fs.ReadDir(path)
-	if err != nil {
-		return nil, err
-	}
-	for _, entry := range entries {
-		fp := filepath.Join(path, entry.Name())
-		if entry.IsDir() {
-			res, err := getAllFilenames(fs, fp)
-			if err != nil {
-				return nil, err
-			}
-			out = append(out, res...)
-			continue
-		}
-		out = append(out, fp)
-	}
-	return
 }
