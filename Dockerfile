@@ -11,7 +11,7 @@ FROM golang:1.22-alpine AS buildback
 WORKDIR /app
 COPY . /app
 
-COPY --from=buildfront /app/dist/ /app/data/
+COPY --from=buildfront /app/dist/ /app/frontend/dist/
 
 RUN go mod tidy
 RUN go mod vendor
