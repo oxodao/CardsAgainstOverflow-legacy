@@ -1,25 +1,32 @@
 <template>
-  <div id="ExitDialog">
-    <p>Vous allez quitter la partie!</p>
-    <button @click="closeDialog">Retour au jeu</button>
-    <button id="quit" @click="exit">Je me barre!</button>
-  </div>
+    <div id="ExitDialog">
+        <p>Vous allez quitter la partie!</p>
+        <button @click="closeDialog">
+            Retour au jeu
+        </button>
+        <button
+            id="quit"
+            @click="exit"
+        >
+            Je me barre!
+        </button>
+    </div>
 </template>
 
 <script>
 export default {
-  name: "ExitDialog",
-  methods: {
-    closeDialog() {
-      this.$store.commit('hideCloseDialog');
-    },
-    exit(e) {
-      e.preventDefault();
-      window.location.reload();
-      return false;
+    name: 'ExitDialog',
+    methods: {
+        closeDialog() {
+            this.$store.commit('hideCloseDialog');
+        },
+        exit(e) {
+            e.preventDefault();
+            window.location.reload();
+            return false;
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

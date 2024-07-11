@@ -1,27 +1,33 @@
 <template>
-  <button @click="toggleList" v-tooltip="'Joueurs'">
-    <img src="../assets/user-friends.png" alt="Users"/>
-    <span class="amtUsers">{{ amtUsers }}</span>
-  </button>
+    <button
+        v-tooltip="'Joueurs'"
+        @click="toggleList"
+    >
+        <img
+            src="../assets/user-friends.png"
+            alt="Users"
+        />
+        <span class="amtUsers">{{ amtUsers }}</span>
+    </button>
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapState} from 'vuex';
 
 export default {
-  name: "UsersButton",
-  computed: {
-    ...mapState({
-      amtUsers: state => state.Room.Participants.length,
-    })
-  },
-  methods: {
-    toggleList(e) {
-      this.$store.commit('togglePlayersMenu' );
-      e.stopPropagation();
+    name: 'UsersButton',
+    computed: {
+        ...mapState({
+            amtUsers: state => state.Room.Participants.length,
+        })
+    },
+    methods: {
+        toggleList(e) {
+            this.$store.commit('togglePlayersMenu' );
+            e.stopPropagation();
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

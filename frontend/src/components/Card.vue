@@ -1,84 +1,95 @@
 <template>
-    <div :class="'card ' + getClassnameIsSelected" @click="toggleSelection">
-        <p :class="getClassForTextSize(IsProposal)">{{ IsProposal ? "Proposition #" + (Index+1) : card.Text }}</p>
+    <div
+        :class="'card ' + getClassnameIsSelected"
+        @click="toggleSelection"
+    >
+        <p :class="getClassForTextSize(isProposal)">
+            {{ isProposal ? "Proposition #" + (index+1) : card.Text }}
+        </p>
         <div class="branding">
-            <span v-for="t in getDeckName" :key="t">{{ t }}</span>
+            <span
+                v-for="t in getDeckName"
+                :key="t"
+            >{{ t }}</span>
         </div>
-        <div v-if="showPosition && !IsProposal" id="position">
+        <div
+            v-if="showPosition && !isProposal"
+            id="position"
+        >
             {{ getSelectedPosition }}
         </div>
     </div>
 </template>
 
 <script>
-    export default {
-        name: "Card",
-        props: {
-            card: Object,
-            Index: Number,
-            IsProposal: Boolean,
+export default {
+    name: 'Card',
+    props: {
+        card: Object,
+        index: Number,
+        isProposal: Boolean,
+    },
+    computed: {
+        getClassnameIsSelected() {
+            let state = this.$store.state;
+            if (state.Room.TurnState === 0) {
+                return state.UI.SelectedCards.includes(this.index) ? 'isSelected' : '';
+            }
+
+            return state.Room.JudgeSelection === this.index ? 'isSelected' : '';
         },
-        computed: {
-            getClassnameIsSelected() {
-                let state = this.$store.state;
-                if (state.Room.TurnState === 0) {
-                    return state.UI.SelectedCards.includes(this.Index) ? "isSelected" : "";
-                }
 
-                return state.Room.JudgeSelection === this.Index ? "isSelected" : "";
-            },
+        showPosition() {
+            let state = this.$store.state;
+            if (state.Room.TurnState !== 0 || state.User.IsJudge)
+            {return false;}
 
-            showPosition() {
-                let state = this.$store.state;
-                if (state.Room.TurnState !== 0 || state.User.IsJudge)
-                    return false
-
-                return state.Room.CurrentBlackCard.AmtCardRequired > 1 && state.UI.SelectedCards.includes(this.Index)
-            },
-            getSelectedPosition() {
-                let state = this.$store.state;
-                if (state.Room.TurnState === 0) {
-                    return state.UI.SelectedCards.indexOf(this.Index) + 1;
-                }
-
-                return state.Room.JudgeSelection
-            },
-            getDeckName() {
-                let decks = this.$store.state.Room.AvailableDecks;
-
-                for (let i = 0; i < decks.length; i++) {
-                    if (decks[i].ID === this.card.Deck) {
-                        return decks[i].Title.split(" ");
-                    }
-                }
-
-                return ["Réponses"];
-            },
+            return state.Room.CurrentBlackCard.AmtCardRequired > 1 && state.UI.SelectedCards.includes(this.index);
         },
-        methods: {
-            toggleSelection: function() {
-                let state = this.$store.state;
-                if (state.Room.TurnState === 0) {
-                    this.$store.dispatch('select', this.Index)
-                } else if (state.User.IsJudge && state.Room.TurnState === 1) {
-                    this.$store.dispatch('selectProposal', this.Index)
+        getSelectedPosition() {
+            let state = this.$store.state;
+            if (state.Room.TurnState === 0) {
+                return state.UI.SelectedCards.indexOf(this.index) + 1;
+            }
+
+            return state.Room.JudgeSelection;
+        },
+        getDeckName() {
+            let decks = this.$store.state.Room.AvailableDecks;
+
+            for (let i = 0; i < decks.length; i++) {
+                if (decks[i].ID === this.card.Deck) {
+                    return decks[i].Title.split(' ');
                 }
-            },
-            getClassForTextSize() {
-                if (this.IsProposal) return '';
+            }
 
-                let size = this.card.Text.length || '';
+            return ['Réponses'];
+        },
+    },
+    methods: {
+        toggleSelection: function() {
+            let state = this.$store.state;
+            if (state.Room.TurnState === 0) {
+                this.$store.dispatch('select', this.index);
+            } else if (state.User.IsJudge && state.Room.TurnState === 1) {
+                this.$store.dispatch('selectProposal', this.index);
+            }
+        },
+        getClassForTextSize() {
+            if (this.isProposal) {return '';}
 
-                if (size >= 80) {
-                    return 'size2';
-                } else if (size >= 55) {
-                    return 'size1';
-                }
+            let size = this.card.Text.length || '';
 
-                return '';
-            },
-        }
+            if (size >= 80) {
+                return 'size2';
+            } else if (size >= 55) {
+                return 'size1';
+            }
+
+            return '';
+        },
     }
+};
 </script>
 
 <style lang="scss" scoped>

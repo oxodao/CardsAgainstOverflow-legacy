@@ -1,58 +1,72 @@
 <template>
-  <nav :class="MenuVisible ? 'visible' : ''">
-    <img src="../../assets/logo.png" alt="Logo"/>
+    <nav :class="MenuVisible ? 'visible' : ''">
+        <img
+            src="../../assets/logo.png"
+            alt="Logo"
+        />
 
-    <button id="endgame" @click="exit">Quitter la partie</button>
+        <button
+            id="endgame"
+            @click="exit"
+        >
+            Quitter la partie
+        </button>
 
-    <h2>Joueurs</h2>
+        <h2>Joueurs</h2>
 
-    <ul>
-      <PlayerName v-for="player in participants"
-                  :key="player.Username + player.Score + player.IsJudge + player.IsAdmin + player.HasPlayed"
-                  v-bind:player="player"/>
-    </ul>
+        <ul>
+            <PlayerName
+                v-for="player in participants"
+                :key="player.Username + player.Score + player.IsJudge + player.IsAdmin + player.HasPlayed"
+                :player="player"
+            />
+        </ul>
 
-    <div id="actions">
-      <WizzButton/>
-      <RerollButton/>
-    </div>
-    <h3 v-if="isStarted && currTurn <= maxTurn && !zenMode">Tour: {{ currTurn }} / {{ maxTurn }}</h3>
-    <h3 v-else-if="isStarted && (zenMode || currTurn <= maxTurn)">Tour: {{ currTurn }}</h3>
-  </nav>
+        <div id="actions">
+            <WizzButton />
+            <RerollButton />
+        </div>
+        <h3 v-if="isStarted && currTurn <= maxTurn && !zenMode">
+            Tour: {{ currTurn }} / {{ maxTurn }}
+        </h3>
+        <h3 v-else-if="isStarted && (zenMode || currTurn <= maxTurn)">
+            Tour: {{ currTurn }}
+        </h3>
+    </nav>
 </template>
 
 <script>
-import PlayerName   from "../PlayerName";
-import {mapState}   from "vuex";
-import RerollButton from "@/components/RerollButton";
-import WizzButton   from "@/components/WizzButton";
+import {mapState}   from 'vuex';
+import PlayerName   from '@/components/PlayerName.vue';
+import RerollButton from '@/components/RerollButton.vue';
+import WizzButton   from '@/components/WizzButton.vue';
 
 export default {
-  name      : "SideMenu",
-  components: {
-    WizzButton,
-    RerollButton,
-    PlayerName,
-  },
-  computed  : {
-    ...mapState({
-      participants : state => state.Room.Participants,
-      currTurn     : state => state.Room.Turn,
-      maxTurn      : state => state.Room.MaxTurn,
-      zenMode      : state => state.Room.ZenMode,
-      isStarted    : state => state.Room.Started,
-      MenuVisible  : state => state.UI.MenuVisible,
-    })
-  },
-  methods   : {
-    exit(e) {
-      e.stopPropagation();
-      this.$store.commit('showCloseDialog')
-      return false;
-    }
-  },
+    name      : 'SideMenu',
+    components: {
+        WizzButton,
+        RerollButton,
+        PlayerName,
+    },
+    computed  : {
+        ...mapState({
+            participants : state => state.Room.Participants,
+            currTurn     : state => state.Room.Turn,
+            maxTurn      : state => state.Room.MaxTurn,
+            zenMode      : state => state.Room.ZenMode,
+            isStarted    : state => state.Room.Started,
+            MenuVisible  : state => state.UI.MenuVisible,
+        })
+    },
+    methods   : {
+        exit(e) {
+            e.stopPropagation();
+            this.$store.commit('showCloseDialog');
+            return false;
+        }
+    },
 
-}
+};
 </script>
 
 <style lang="scss" scoped>

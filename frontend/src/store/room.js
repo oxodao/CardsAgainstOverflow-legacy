@@ -10,11 +10,11 @@ export default {
         JudgeSelection: -1,
         MaxTurn: 10,
         Participants: [],
-        RoomID: "",
+        RoomID: '',
         Started: false,
         Turn: 0,
         TurnState: 0,
-        Winner: "",
+        Winner: '',
         WinningAnswer: null,
         ZenMode: false,
     }),
@@ -44,12 +44,13 @@ export default {
             state.DefaultCountdown = payload.DefaultCountdown;
             state.DefaultRerollTimeout = payload.DefaultRerollTimeout;
 
-            for(let i = 0; i < state.AvailableDecks.length; i++) {
-                let e = state.AvailableDecks[i]
+            for (let i = 0; i < state.AvailableDecks.length; i++) {
+                let e = state.AvailableDecks[i];
+
                 if (payload.SelectedDecks.includes(e.ID)) {
-                    Vue.set(state.AvailableDecks[i], 'IsSelected', true)
+                    Vue.set(state.AvailableDecks[i], 'IsSelected', true);
                 } else {
-                    Vue.set(state.AvailableDecks[i], 'IsSelected', false)
+                    Vue.set(state.AvailableDecks[i], 'IsSelected', false);
                 }
             }
         },
@@ -70,14 +71,14 @@ export default {
 
             for (let i = 0; i < state.AvailableDecks.length; i++) {
                 if (state.AvailableDecks[i].ID === payload.ID) {
-                    Vue.set(state.AvailableDecks, i, { ...state.AvailableDecks[i], IsSelected: payload.Selected })
+                    Vue.set(state.AvailableDecks, i, { ...state.AvailableDecks[i], IsSelected: payload.Selected });
                 }
             }
         },
     },
     actions: {
         startGame({rootState}) {
-            rootState.UI.WebSocket.send(JSON.stringify({ Command: "START_GAME", Arguments: "{}" }))
+            rootState.UI.WebSocket.send(JSON.stringify({ Command: 'START_GAME', Arguments: '{}' }));
         },
         sendSettings({rootState, state}) {
             let settings = {
@@ -91,7 +92,7 @@ export default {
             rootState.UI.WebSocket.send(JSON.stringify({
                 Command: 'SET_SETTINGS',
                 Arguments: JSON.stringify(settings)
-            }))
+            }));
         },
     },
     getters: {
@@ -103,6 +104,10 @@ export default {
 
             let decks = state.AvailableDecks;
 
+            if (!decks) {
+                return { sumBlack: 0, sumWhite: 0 };
+            }
+
             for (let i = 0; i < decks.length; i++) {
                 if (decks[i].IsSelected) {
                     sumBlack += decks[i].AmtBlack;
@@ -113,7 +118,7 @@ export default {
             return { sumBlack, sumWhite };
         },
         HasEnoughCards: (state, getters) => {
-            return getters.AmtCards.sumWhite >= ((state.Participants.length+1) * 7)
+            return getters.AmtCards.sumWhite >= ((state.Participants.length+1) * 7);
         }
     }
 };

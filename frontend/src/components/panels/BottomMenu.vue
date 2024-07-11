@@ -1,36 +1,36 @@
 <template>
-  <div id="bottom-menu">
-    <UsersButton/>
-    <WizzButton/>
-    <RerollButton/>
-    <span v-if="isStarted && currTurn <= maxTurn && !zenMode">Tour: {{ currTurn }} / {{ maxTurn }}</span>
-    <span v-else-if="isStarted && (zenMode || currTurn <= maxTurn)">Tour: {{ currTurn }}</span>
+    <div id="bottom-menu">
+        <UsersButton />
+        <WizzButton />
+        <RerollButton />
+        <span v-if="isStarted && currTurn <= maxTurn && !zenMode">Tour: {{ currTurn }} / {{ maxTurn }}</span>
+        <span v-else-if="isStarted && (zenMode || currTurn <= maxTurn)">Tour: {{ currTurn }}</span>
 
-    <UserList v-if="isPlayerListShown"/>
-  </div>
+        <UserList v-if="isPlayerListShown" />
+    </div>
 </template>
 
 <script>
-import UsersButton  from "@/components/UsersButton";
-import RerollButton from "@/components/RerollButton";
-import WizzButton   from "@/components/WizzButton";
-import {mapState}   from "vuex";
-import UserList     from "@/components/panels/UserList";
+import {mapState}   from 'vuex';
+
+import UsersButton  from '@/components/UsersButton.vue';
+import RerollButton from '@/components/RerollButton.vue';
+import WizzButton   from '@/components/WizzButton.vue';
+import UserList     from '@/components/panels/UserList.vue';
 
 export default {
-  name      : "BottomMenu",
-  components: {UserList, WizzButton, RerollButton, UsersButton},
-  computed  : {
-    ...mapState({
-      isStarted        : state => state.Room.Started,
-      zenMode          : state => state.Room.ZenMode,
-      currTurn         : state => state.Room.Turn,
-      maxTurn          : state => state.Room.MaxTurn,
-      isPlayerListShown: state => state.UI.PlayersMenuVisible,
-      //isPlayerListShown: () => true
-    })
-  }
-}
+    name      : 'BottomMenu',
+    components: {UserList, WizzButton, RerollButton, UsersButton},
+    computed  : {
+        ...mapState({
+            isStarted        : state => state.Room.Started,
+            zenMode          : state => state.Room.ZenMode,
+            currTurn         : state => state.Room.Turn,
+            maxTurn          : state => state.Room.MaxTurn,
+            isPlayerListShown: state => state.UI.PlayersMenuVisible,
+        })
+    }
+};
 </script>
 
 <style lang="scss" scoped>

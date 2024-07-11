@@ -21,7 +21,7 @@ export default {
         },
 
         setDeporte: (state, payload) => {
-          state.Deporte = payload;
+            state.Deporte = payload;
         },
 
         togglePlayersMenu: (state) => {
@@ -42,8 +42,8 @@ export default {
         },
 
         WIZZ: (state, payload) => {
-          if (!state.Wizz.map(e => e.user).includes(payload))
-              state.Wizz.push({user: payload, at: new Date()});
+            if (!state.Wizz.map(e => e.user).includes(payload))
+            {state.Wizz.push({user: payload, at: new Date()});}
         },
 
         WIZZ_REFILLED: (state) => {
@@ -59,7 +59,7 @@ export default {
         },
 
         setWizzArray: (state, payload) => {
-          state.Wizz = payload;
+            state.Wizz = payload;
         },
 
         COUNTDOWN: (state, payload) => {
@@ -74,7 +74,7 @@ export default {
                 } else {
                     state.SelectedCards = [payload];
                 }
-                return
+                return;
             }
 
             if (state.SelectedCards.includes(payload)) {
@@ -107,7 +107,7 @@ export default {
                 Command: 'WIZZ',
                 Arguments: '{}'
             }));
-            commit('canWizz', false)
+            commit('canWizz', false);
         },
         reroll: (ctx) => {
             ctx.state.WebSocket.send(JSON.stringify({
@@ -129,22 +129,22 @@ export default {
                 state.WebSocket.send(JSON.stringify({
                     Command: 'SEND_SELECTION',
                     Arguments: JSON.stringify(state.SelectedCards),
-                }))
+                }));
             } else {
                 state.WebSocket.send(JSON.stringify({
                     Command: 'SEND_SELECTION',
                     Arguments: JSON.stringify(state.SelectedCards),
-                }))
+                }));
             }
         },
         skipCountdown: (ctx) => {
             ctx.state.WebSocket.send(JSON.stringify({
                 Command: 'SKIP_COUNTDOWN',
                 Arguments: '{}'
-            }))
+            }));
         },
     },
     getters: {
-        DisplayWizz: state => state.Wizz.length > 0 ? "wizz" : "",
+        DisplayWizz: state => state.Wizz.length > 0 ? 'wizz' : '',
     }
 };

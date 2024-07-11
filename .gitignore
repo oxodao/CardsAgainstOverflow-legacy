@@ -6,3 +6,5 @@ pkged.go
 .vscode
 data/*
 SQL/decks/
+tmp/
+0_DATA/

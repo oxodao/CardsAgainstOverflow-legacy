@@ -1,75 +1,86 @@
 <template>
-  <h1 v-if="Started && currBlackCard !== undefined && currBlackCard !== null && IsReady" :class="'size ' + Size">
-    <span v-for="txt in getCardText()" v-bind:key="txt.Question" v-bind:class="txt.Class">{{ txt.Question }}</span>
-    <span v-if="TurnState === 2" class="colored-blue"><br/>{{ winner }}</span>
-  </h1>
+    <h1
+        v-if="Started && currBlackCard !== undefined && currBlackCard !== null && IsReady"
+        :class="'size ' + Size"
+    >
+        <span
+            v-for="txt in getCardText()"
+            :key="txt.Question"
+            :class="txt.Class"
+        >{{ txt.Question }}</span>
+        <span
+            v-if="TurnState === 2"
+            class="colored-blue"
+        ><br />{{ winner }}</span>
+    </h1>
 </template>
 
 <script>
-import {mapGetters, mapState} from "vuex";
+import {mapGetters, mapState} from 'vuex';
 
 export default {
-  name    : "BlackCard",
-  data() {
-    return {
-      Size: "Size1",
-    }
-  },
-  computed: {
-    ...mapState({
-      Started      : state => state.Room.Started,
-      currBlackCard: state => state.Room.CurrentBlackCard,
-      TurnState    : state => state.Room.TurnState,
-      winner       : state => state.Room.Winner,
-    }),
-    ...mapGetters([
-      'IsReady'
-    ])
-  },
-  methods : {
-    getCardText() {
-      //this.currBlackCard.Text = "Le premier soir je me suis donc endormi sur le sable à 1000 milles de toute terre habitée. J'étais bien plus isolé qu'un naufragé sur un radeau au milieu de l'océan. Alors imaginez ma surprise quand au lever du jour, une drôle de petite voix m'a réveillé. Elle disait \"S'il vout plait... Dessine-moi ____\"";
-      let length = this.currBlackCard.Text.length || 100;
-      if (length < 150) {
-        this.Size = "Size1"
-      } else if (length >= 150) {
-        this.Size = "Size2"
-      }
-
-      if (this.TurnState === 0)
-        return [
-          {
-            "Question": this.currBlackCard.Text,
-            "Class"   : "",
-          }
-        ];
-
-      let txt = this.currBlackCard.Text;
-      let txtSplitted = txt.split(/(____)/)
-      let curr = 0;
-      let values = [];
-      txtSplitted.forEach(e => {
-        if (e === "____") {
-          let Question = "";
-          let winning = this.$store.state.Room.WinningAnswer;
-          if (winning !== undefined && winning !== null) {
-            Question = winning.Cards[curr].Text
-          } else {
-            Question = this.$store.state.Room.Answers[this.$store.state.Room.JudgeSelection].Cards[curr].Text
-          }
-          values.push({
-            Question,
-            Class: 'colored-green'
-          })
-          curr++
-        } else
-          values.push({Question: e, Class: ''})
-      });
-
-      return values
+    name    : 'BlackCard',
+    data() {
+        return {
+            Size: 'Size1',
+        };
     },
-  }
-}
+    computed: {
+        ...mapState({
+            Started      : state => state.Room.Started,
+            currBlackCard: state => state.Room.CurrentBlackCard,
+            TurnState    : state => state.Room.TurnState,
+            winner       : state => state.Room.Winner,
+        }),
+        ...mapGetters([
+            'IsReady'
+        ])
+    },
+    methods : {
+        getCardText() {
+            let length = this.currBlackCard.Text.length || 100;
+            if (length < 150) {
+                this.Size = 'Size1';
+            } else if (length >= 150) {
+                this.Size = 'Size2';
+            }
+
+            if (this.TurnState === 0) {
+                return [ 
+                    { 'Question': this.currBlackCard.Text, 'Class': '' }
+                ]; 
+            }
+
+            let txt = this.currBlackCard.Text;
+            let txtSplitted = txt.split(/(____)/);
+            let curr = 0;
+            let values = [];
+
+            txtSplitted.forEach(e => {
+                if (e === '____') {
+                    let Question = '';
+                    let winning = this.$store.state.Room.WinningAnswer;
+
+                    if (winning !== undefined && winning !== null) {
+                        Question = winning.Cards[curr].Text;
+                    } else {
+                        Question = this.$store.state.Room.Answers[this.$store.state.Room.JudgeSelection].Cards[curr].Text;
+                    }
+
+                    curr++;
+
+                    values.push({
+                        Question,
+                        Class: 'colored-green'
+                    });
+                } else
+                {values.push({Question: e, Class: ''});}
+            });
+
+            return values;
+        },
+    }
+};
 </script>
 
 <style lang="scss" scoped>

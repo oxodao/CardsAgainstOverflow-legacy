@@ -1,32 +1,39 @@
 <template>
-  <header>
-    <button @click="quitGame"><img src="../../assets/exit.png" alt="Quitter la partie"/></button>
-    <h1 id="game-title">Cards Against Overflow</h1>
+    <header>
+        <button @click="quitGame">
+            <img
+                src="../../assets/exit.png"
+                alt="Quitter la partie"
+            />
+        </button>
+        <h1 id="game-title">
+            Cards Against Overflow
+        </h1>
 
-    <div>
-      <span>Code salle: {{ RoomID }}</span>
-    </div>
-  </header>
+        <div>
+            <span>Code salle: {{ RoomID }}</span>
+        </div>
+    </header>
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapState} from 'vuex';
 
 export default {
-  name    : "Header",
-  computed: {
-    ...mapState({
-      RoomID: state => state.Room.RoomID,
-    })
-  },
-  methods : {
-    quitGame(e) {
-      e.stopPropagation();
-      this.$store.commit('showCloseDialog')
-      return false;
+    name    : 'BoardHeader',
+    computed: {
+        ...mapState({
+            RoomID: state => state.Room.RoomID,
+        })
+    },
+    methods : {
+        quitGame(e) {
+            e.stopPropagation();
+            this.$store.commit('showCloseDialog');
+            return false;
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>
@@ -40,19 +47,18 @@ header {
   align-items: center;
 
   button {
+    width: 34px;
+    height: 34px;
+    padding: 5px;
+
     @media (min-width: 651px) {
       display: none;
     }
-
-    width: 34px;
-    height: 34px;
 
     img {
       width: 24px;
       height: 24px;
     }
-
-    padding: 5px;
   }
 
   div {

@@ -1,26 +1,34 @@
 <template>
-  <button v-if="!isDeporte" :disabled="!canWizz" @click="addWizz" v-tooltip="'Wizz'">
-    <img src="../assets/msn_wizz.png" alt="wizz"/>
-  </button>
+    <button
+        v-if="!isDeporte"
+        v-tooltip="'Wizz'"
+        :disabled="!canWizz"
+        @click="addWizz"
+    >
+        <img
+            src="../assets/msn_wizz.png"
+            alt="wizz"
+        />
+    </button>
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapState} from 'vuex';
 
 export default {
-  name: "WizzButton",
-  computed: {
-    ...mapState({
-      canWizz      : state => state.UI.CanWizz,
-      isDeporte    : state => state.UI.Deporte,
-    })
-  },
-  methods: {
-    addWizz() {
-      this.$store.dispatch('sendWizz')
+    name: 'WizzButton',
+    computed: {
+        ...mapState({
+            canWizz      : state => state.UI.CanWizz,
+            isDeporte    : state => state.UI.Deporte,
+        })
     },
-  }
-}
+    methods: {
+        addWizz() {
+            this.$store.dispatch('sendWizz');
+        },
+    }
+};
 </script>
 
 <style lang="scss" scoped>

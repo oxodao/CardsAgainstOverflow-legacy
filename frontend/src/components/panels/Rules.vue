@@ -1,25 +1,47 @@
 <template>
-    <div id="rules" v-bind:class="isShown">
+    <div
+        id="rules"
+        :class="isShown"
+    >
         <div id="rules-inner">
-            <div class="icon" v-bind:class="cardGame ? 'selected' : ''" @click="selectCard">
-                <img src="../../assets/card_icon.png"/>
+            <div
+                class="icon"
+                :class="cardGame ? 'selected' : ''"
+                @click="selectCard"
+            >
+                <img src="../../assets/card_icon.png" />
                 <span>Règles du jeu</span>
             </div>
-            <div class="icon" v-bind:class="usage ? 'selected' : ''" @click="selectUsage">
-                <img src="../../assets/game_icon.png"/>
+            <div
+                class="icon"
+                :class="usage ? 'selected' : ''"
+                @click="selectUsage"
+            >
+                <img src="../../assets/game_icon.png" />
                 <span>Utilisation du site</span>
             </div>
         </div>
-        <div id="rules-content" v-if="cardGame">
+        <div
+            v-if="cardGame"
+            id="rules-content"
+        >
             <h2>Règles du jeu de cartes</h2>
             <p>Si vous avez déjà joué à Cards Against Humanity ou Blanc Manger Coco, les règles sont similaires. Ces règles considèrent que les joueurs ont un moyen de discussion vocal (Skype, appel messenger, etc...)</p>
             <p>Le jeu comporte des cartes blanches (réponses) et des cartes à trou.</p>
-            <p>À chaque tour, un joueur est désigné <img class="mini-icon" src="../../assets/gavel.png"/> Juge . Il va lire à haute voix la carte à trou.</p>
+            <p>
+                À chaque tour, un joueur est désigné <img
+                    class="mini-icon"
+                    src="../../assets/gavel.png"
+                /> Juge . Il va lire à haute voix la carte à trou.
+            </p>
             <p>Chacun des joueurs va ensuite compléter avec les cartes qu'il possède dans son jeu et tenter de faire la combinaison la plus drôle.</p>
             <p>Le juge va ensuite lire chaque proposition à haute voix et choisir celle qu'il considère la plus drôle.</p>
             <p>Si un joueur n'aime pas sa main, il peut décider d'effectuer un "Re-roll" une fois tout les 4 tours (personnalisable). Il va alors abadonner toutes ses cartes et en repiocher.</p>
         </div>
-        <div id="rules-content" v-else-if="usage">
+        <div
+            v-else-if="usage"
+            id="rules-content"
+        >
             <h2>Utilisation du site</h2>
             <p>Pour créer une partie, rien de plus simple. Choisissez votre pseudo et cliquez sur "Rejoindre".</p>
             <p>En haut à droite de l'écran, le code de la salle est affiché. Partagez-le avec vos amis afin qu'ils vous rejoignent en le renseignant dans la case "Code salle"</p>
@@ -35,40 +57,46 @@
             <p>Si vous trouvez un problème, n'hésitez pas à me contacter pour me l'expliquer afin que je puisse la corriger.</p>
             <p>Si vous me connaissez, contactez moi par votre moyen habituel sinon n'hésitez pas à m'envoyer un email à <a href="mailto:nathan@janczewski.fr">nathan@janczewski.fr</a></p>
         </div>
-        <div id="closeBt" @click="close">X</div>
+        <div
+            id="closeBt"
+            @click="close"
+        >
+            X
+        </div>
     </div>
 </template>
 
 <script>
-    export default {
-        name: "Rules",
-        props: [ 'showRules' ],
-        computed: {
-            isShown() {
-                return this.$store.state.UI.ShowRules ? "shown" : "";
-            }
+export default {
+    name: 'Rules',
+    props: [ 'showRules' ],
+    data: () => ({
+        cardGame: true,
+        usage: false,
+    }),
+    computed: {
+        isShown() {
+            return this.$store.state.UI.ShowRules ? 'shown' : '';
+        }
+    },
+    methods: {
+        selectCard() {
+            this.cardGame = true;
+            this.usage = false;
         },
-        data: () => ({
-            cardGame: true,
-            usage: false,
-        }),
-        methods: {
-            selectCard() {
-                this.cardGame = true;
-                this.usage = false;
-            },
-            selectUsage() {
-                this.cardGame = false;
-                this.usage = true;
-            },
-            close() {
-                this.$store.commit('showRules');
-            }
+        selectUsage() {
+            this.cardGame = false;
+            this.usage = true;
+        },
+        close() {
+            this.$store.commit('showRules');
         }
     }
+};
 </script>
 
 <style lang="scss" scoped>
+    @use "sass:math";
 
     #rules {
         display: none;
@@ -81,8 +109,8 @@
 
         width: $width;
         height: $height;
-        left: calc(50% - #{$width/2});
-        top: calc(50% - #{$height/2});
+        left: calc(50% - math.div($width, 2));
+        top: calc(50% - math.div($height, 2));
 
         background: rgba(0, 0, 0, .8);
         border-radius: 2em;
@@ -154,5 +182,4 @@
     .shown {
         display: flex !important;
     }
-
 </style>

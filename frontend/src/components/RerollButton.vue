@@ -1,32 +1,43 @@
 <template>
-  <button v-if="isStarted && !isDeporte" :disabled="!canReroll" @click="reroll" v-tooltip="'Re-piocher'"><img
-      src="../assets/reroll.png" alt="Reroll"/>
-    <span class="rerollTimeout" v-if="rerollTimeout > 0">{{ rerollTimeout }}</span>
-  </button>
+    <button
+        v-if="isStarted && !isDeporte"
+        v-tooltip="'Re-piocher'"
+        :disabled="!canReroll"
+        @click="reroll"
+    >
+        <img
+            src="../assets/reroll.png"
+            alt="Reroll"
+        />
+        <span
+            v-if="rerollTimeout > 0"
+            class="rerollTimeout"
+        >{{ rerollTimeout }}</span>
+    </button>
 </template>
 
 <script>
-import {mapState} from "vuex";
+import {mapState} from 'vuex';
 
 export default {
-  name    : "RerollButton",
-  computed: {
-    ...mapState({
-      isStarted    : state => state.Room.Started,
-      isDeporte    : state => state.UI.Deporte,
-      rerollTimeout: state => state.User.RerollTimeout,
-    }),
-    canReroll() {
-      let state = this.$store.state;
-      return !state.User.IsJudge && state.Room.TurnState === 0 && state.User.RerollTimeout === 0;
+    name    : 'RerollButton',
+    computed: {
+        ...mapState({
+            isStarted    : state => state.Room.Started,
+            isDeporte    : state => state.UI.Deporte,
+            rerollTimeout: state => state.User.RerollTimeout,
+        }),
+        canReroll() {
+            let state = this.$store.state;
+            return !state.User.IsJudge && state.Room.TurnState === 0 && state.User.RerollTimeout === 0;
+        },
     },
-  },
-  methods: {
-    reroll() {
-      this.$store.dispatch('reroll');
-    },
-  }
-}
+    methods: {
+        reroll() {
+            this.$store.dispatch('reroll');
+        },
+    }
+};
 </script>
 
 <style lang="scss" scoped>

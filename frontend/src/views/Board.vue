@@ -1,53 +1,59 @@
 <template>
-  <div id="game">
-    <Header/>
-    <SideMenu/>
-    <div id="board">
-      <GameStatus/>
-      <RoomSettings v-if="!Started"/>
-      <template v-else>
-        <BlackCard/>
-        <Deck/>
-        <div id="buttonbar" v-if="!IsDeporte && IsReady && TurnState === 1 && IsJudge">
-          <button @click="sendProposalSelection">Valider</button>
-        </div>
-      </template>
+    <div id="game">
+        <BoardHeader />
+        <SideMenu />
+        <div id="board">
+            <GameStatus />
+            <RoomSettings v-if="!Started" />
+            <template v-else>
+                <BlackCard />
+                <Deck />
+                <div
+                    v-if="!IsDeporte && IsReady && TurnState === 1 && IsJudge"
+                    id="buttonbar"
+                >
+                    <button @click="sendProposalSelection">
+                        Valider
+                    </button>
+                </div>
+            </template>
 
-      <Countdown/>
+            <Countdown />
+        </div>
+        <BottomMenu />
     </div>
-    <BottomMenu />
-  </div>
 </template>
 
 <script>
-import SideMenu               from "../components/panels/SideMenu";
-import Header                 from "../components/panels/Header";
-import GameStatus             from "../components/GameStatus";
-import RoomSettings           from "../components/panels/RoomSettings";
-import Countdown              from "../components/Countdown";
-import {mapGetters, mapState} from "vuex";
-import BlackCard              from "../components/BlackCard";
-import Deck                   from "../components/Deck";
-import BottomMenu             from "@/components/panels/BottomMenu";
+import SideMenu               from '@/components/panels/SideMenu.vue';
+import BoardHeader            from '@/components/panels/Header.vue';
+import GameStatus             from '@/components/GameStatus.vue';
+import RoomSettings           from '@/components/panels/RoomSettings.vue';
+import Countdown              from '@/components/Countdown.vue';
+import BlackCard              from '@/components/BlackCard.vue';
+import Deck                   from '@/components/Deck.vue';
+import BottomMenu             from '@/components/panels/BottomMenu.vue';
+
+import {mapGetters, mapState} from 'vuex';
 
 export default {
-  name      : "Board",
-  components: {BottomMenu, Deck, BlackCard, Countdown, RoomSettings, GameStatus, Header, SideMenu},
-  computed  : {
-    ...mapState({
-      Started  : state => state.Room.Started,
-      IsJudge  : state => state.User.IsJudge,
-      TurnState: state => state.Room.TurnState,
-      IsDeporte: state => state.UI.Deporte,
-    }),
-    ...mapGetters(['IsReady'])
-  },
-  methods   : {
-    sendProposalSelection() {
-      this.$store.dispatch('skipCountdown');
+    name      : 'Board',
+    components: {BottomMenu, Deck, BlackCard, Countdown, RoomSettings, GameStatus, BoardHeader, SideMenu},
+    computed  : {
+        ...mapState({
+            Started  : state => state.Room.Started,
+            IsJudge  : state => state.User.IsJudge,
+            TurnState: state => state.Room.TurnState,
+            IsDeporte: state => state.UI.Deporte,
+        }),
+        ...mapGetters(['IsReady'])
+    },
+    methods   : {
+        sendProposalSelection() {
+            this.$store.dispatch('skipCountdown');
+        }
     }
-  }
-}
+};
 </script>
 
 <style lang="scss" scoped>

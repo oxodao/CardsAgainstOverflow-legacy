@@ -1,10 +1,26 @@
 <template>
-    <li v-bind:class="isMe">
+    <li :class="isMe">
         <div>
-            <img v-if="player.HasPlayed" src="../assets/card_icon.png" alt="Has played"/>
-            <img v-if="isWizzing" src="../assets/msn_wizz.png" alt="Wizzing"/>
-            <img v-if="player.IsAdmin" src="../assets/admin.png" alt="Admin"/>
-            <img v-if="player.IsJudge" src="../assets/gavel.png" alt="Judge"/>
+            <img
+                v-if="player.HasPlayed"
+                src="../assets/card_icon.png"
+                alt="Has played"
+            />
+            <img
+                v-if="isWizzing"
+                src="../assets/msn_wizz.png"
+                alt="Wizzing"
+            />
+            <img
+                v-if="player.IsAdmin"
+                src="../assets/admin.png"
+                alt="Admin"
+            />
+            <img
+                v-if="player.IsJudge"
+                src="../assets/gavel.png"
+                alt="Judge"
+            />
             <span>{{ player.Username }}</span>
         </div>
         <span class="score">{{ player.Score }}</span>
@@ -12,25 +28,25 @@
 </template>
 
 <script>
-    import {mapState} from "vuex";
+import {mapState} from 'vuex';
 
-    export default {
-        name: 'PlayerName',
-        props: [
-            'player'
-        ],
-        computed: {
-            ...mapState({
-                IsDeporte: state => state.UI.Deporte,
-            }),
-            isMe() {
-                return (!this.IsDeporte && (this.player.Username === this.$store.state.User.Username)) ? "isMe" : "";
-            },
-            isWizzing() {
-                return this.$store.state.UI.Wizz.map(e => e.user).includes(this.player.Username);
-            }
+export default {
+    name: 'PlayerName',
+    props: [
+        'player'
+    ],
+    computed: {
+        ...mapState({
+            IsDeporte: state => state.UI.Deporte,
+        }),
+        isMe() {
+            return (!this.IsDeporte && (this.player.Username === this.$store.state.User.Username)) ? 'isMe' : '';
+        },
+        isWizzing() {
+            return this.$store.state.UI.Wizz.map(e => e.user).includes(this.player.Username);
         }
     }
+};
 </script>
 
 <style lang="scss" scoped>

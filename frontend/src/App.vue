@@ -1,65 +1,82 @@
 <template>
-  <div id="app" @click="hidePlayersList" v-bind:class="DisplayWizz">
-    <Rules/>
-    <Login v-if="!loggedIn"/>
-    <Board v-else />
-    <audio autoPlay v-for="i in wizz" v-bind:key="i.user" @ended="delWizz(i)">
-      <source src="./assets/wizz.mp3" type="audio/mpeg" />
-    </audio>
+    <div
+        id="app"
+        :class="DisplayWizz"
+        @click="hidePlayersList"
+    >
+        <Rules />
+        <Login v-if="!loggedIn" />
+        <Board v-else />
+        <audio
+            v-for="i in wizz"
+            :key="i.user"
+            autoPlay
+            @ended="delWizz(i)"
+        >
+            <source
+                src="./assets/wizz.mp3"
+                type="audio/mpeg"
+            />
+        </audio>
 
-    <ExitDialog v-if="showExitDialog"/>
+        <ExitDialog v-if="showExitDialog" />
 
-    <div id="lost" v-if="connectionLost">
-      <h1>Connection perdue!</h1>
-      <p>Si vous êtes sur mobile, ne changez pas d'application au cours de la partie!</p>
+        <div
+            v-if="connectionLost"
+            id="lost"
+        >
+            <h1>Connection perdue!</h1>
+            <p>Si vous êtes sur mobile, ne changez pas d'application au cours de la partie!</p>
 
-      <button @click="exit">Relancer</button>
+            <button @click="exit">
+                Relancer
+            </button>
+        </div>
     </div>
-  </div>
 </template>
 
 <script>
-  import Rules from './components/panels/Rules.vue'
-  import Login from "./views/Login";
-  import Board from "./views/Board";
+import Rules from '@/components/panels/Rules.vue';
+import Login from '@/views/Login.vue';
+import Board from '@/views/Board.vue';
+import ExitDialog from '@/components/ExitDialog.vue';
 
-  import {mapGetters, mapState} from "vuex";
-  import ExitDialog             from "@/components/ExitDialog";
+import {mapGetters, mapState} from 'vuex';
 
-  export default {
+export default {
     name: 'App',
     components: {
-      ExitDialog,
-      Rules,
-      Login,
-      Board,
+        ExitDialog,
+        Rules,
+        Login,
+        Board,
     },
     computed: {
-      ...mapState({
-        wizz: state => state.UI.Wizz,
-        loggedIn: state => state.UI.LoggedIn,
-        connectionLost: state => state.UI.LostConnection,
-        showExitDialog: state => state.UI.QuitGameDialog,
-      }),
-      ...mapGetters([
-        'DisplayWizz'
-      ]),
+        ...mapState({
+            wizz: state => state.UI.Wizz,
+            loggedIn: state => state.UI.LoggedIn,
+            connectionLost: state => state.UI.LostConnection,
+            showExitDialog: state => state.UI.QuitGameDialog,
+        }),
+        ...mapGetters([
+            'DisplayWizz'
+        ]),
     },
     methods: {
-      delWizz(user) {
-        this.$store.commit('delWizz', user)
-      },
-      hidePlayersList(e) {
-        if (this.$store.state.UI.PlayersMenuVisible) {
-          this.$store.commit('togglePlayersMenu');
-          e.stopPropagation();
+        delWizz(user) {
+            this.$store.commit('delWizz', user);
+        },
+        hidePlayersList(e) {
+            if (this.$store.state.UI.PlayersMenuVisible) {
+                this.$store.commit('togglePlayersMenu');
+                e.stopPropagation();
+            }
+        },
+        exit() {
+            window.location.reload();
         }
-      },
-      exit() {
-        window.location.reload();
-      }
     },
-  }
+};
 </script>
 
 <style lang="scss">
