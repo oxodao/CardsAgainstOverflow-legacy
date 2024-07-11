@@ -1,4 +1,4 @@
-FROM node:14 AS BUILDFRONT
+FROM node:22 AS buildfront
 
 WORKDIR /app
 COPY ./frontend /app
@@ -6,12 +6,12 @@ COPY ./frontend /app
 RUN npm i
 RUN npm run build
 
-FROM golang:1.22-alpine AS BUILDBACK
+FROM golang:1.22-alpine AS buildback
 
 WORKDIR /app
 COPY . /app
 
-COPY --from=BUILDFRONT /app/dist/ /app/data/
+COPY --from=buildfront /app/dist/ /app/data/
 
 RUN go mod tidy
 RUN go mod vendor
@@ -21,6 +21,6 @@ RUN go build -o cao
 
 FROM alpine
 
-COPY --from=BUILDBACK /app/cao /cao
+COPY --from=buildback /app/cao /cao
 
 ENTRYPOINT [ "/cao" ]
